@@ -48,18 +48,22 @@ HEADERS += \
     src/Control/Question/level9/level9.h \
     src/Diograms/Diograms_Data/diograms_data.h \
     src/Diograms/Diograms_Fun/diograms_fun.h \
-    src/qcustomplot.h \
+    src/Diograms/Enum/listdata.h \
+    src/Tratining/Form/tratining_form.h \
+    src/Tratining/Servise/servise_plot.h \
+    src/Utilities/qcustomplot.h \
     src/Control/Question/QuestionPattern/questionpattern_form.h \
     src/Control/Question/level1/level1_form.h \
     src/Control/Form/controlmode_form.h \
-    src/simulator.h \
-    src/delegate.h
+    src/Simulator/simulator.h \
+    src/Utilities/delegate.h
 FORMS += \
     src/Control/Question/QuestionPattern/questionpattern_form.ui \
     src/Control/Question/level1/level1_form.ui \
     src/Control/Question/level2/level2_form.ui \
     src/Control/Question/level3/level3_form.ui \
     src/Control/Form/controlmode_form.ui \
+    src/Tratining/Form/tratining_form.ui \
     ui/simulator.ui
 SOURCES += \
     src/Control/Question/level10/level10.cpp \
@@ -75,13 +79,16 @@ SOURCES += \
     src/Control/Question/level9/level9.cpp \
     src/Diograms/Diograms_Data/diograms_data.cpp \
     src/Diograms/Diograms_Fun/diograms_fun.cpp \
-    src/qcustomplot.cpp \
+    src/Diograms/Enum/listdata.cpp \
+    src/Tratining/Form/tratining_form.cpp \
+    src/Tratining/Servise/servise_plot.cpp \
+    src/Utilities/qcustomplot.cpp \
     src/Control/Question/QuestionPattern/questionpattern_form.cpp \
     src/Control/Question/level1/level1_form.cpp \
     src/Control/Form/controlmode_form.cpp \
-    src/simulator.cpp \
+    src/Simulator/simulator.cpp \
     src/main.cpp \
-    src/delegate.cpp
+    src/Utilities/delegate.cpp
 
 
 RESOURCES += img/application.qrc

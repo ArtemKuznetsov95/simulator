@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include <wfdb/wfdblib.h>
 #include <Control/Form/controlmode_form.h>
+#include <Tratining/Form/tratining_form.h>
 
 namespace Ui {
 class Simulator;
@@ -36,6 +37,7 @@ public:
 private:
     Ui::Simulator *ui;
     ControlMode_Form *m_widgetControl;
+    Tratining_Form * m_widgetTraining;
 
     enum TypeOfMode {
         PLAY = 0,

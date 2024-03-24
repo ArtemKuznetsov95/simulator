@@ -1,12 +1,13 @@
-#include "delegate.h"
-#include "simulator.h"
-#include "ui_simulator.h"
+#include <Utilities/delegate.h>
+#include <Simulator/simulator.h>
+#include <ui_simulator.h>
 
 
 Simulator::Simulator(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Simulator),
-    m_widgetControl(new ControlMode_Form)
+    m_widgetControl(new ControlMode_Form),
+    m_widgetTraining(new Tratining_Form)
 {
     ui->setupUi(this);
 
@@ -120,7 +121,11 @@ Simulator::Simulator(QWidget *parent) :
 
     ui->cb_sig->setCurrentIndex(5);
 
-    ui->m_stackedWidget->addWidget(m_widgetControl);
+//    ui->m_stackedWidget->addWidget(m_widgetControl);
+    ui->m_stackedWidget->addWidget(m_widgetTraining);
+
+    ui->plot->setVisible(false);
+
 }
 
 Simulator::~Simulator()

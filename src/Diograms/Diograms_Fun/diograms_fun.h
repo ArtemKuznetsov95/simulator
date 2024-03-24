@@ -1,7 +1,7 @@
 #ifndef DIOGRAMS_FUN_H
 #define DIOGRAMS_FUN_H
 
-#include <qcustomplot.h>
+#include <Utilities/qcustomplot.h>
 #include <Diograms/Diograms_Data/diograms_data.h>
 
 class diograms_Fun

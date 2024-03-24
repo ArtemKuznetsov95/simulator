@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QMap>
-#include <qcustomplot.h>
+#include <Utilities/qcustomplot.h>
 #include <Control/Question/level/level.h>
 #include <Diograms/Diograms_Data/diograms_data.h>
 #include <Diograms/Diograms_Fun/diograms_fun.h>

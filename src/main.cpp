@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "simulator.h"
+#include <Simulator/simulator.h>
 
 int main(int argc, char *argv[])
 {
