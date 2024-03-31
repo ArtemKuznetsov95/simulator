@@ -50,7 +50,7 @@ Simulator::Simulator(QWidget *parent) :
 
     ui->plot->addGraph();
 //    ui->plot->graph()->setPen(QPen( Qt::red, 3 ));
-    ui->plot->graph()->setPen(QPen( Qt::blue, 2 ));
+//    ui->plot->graph()->setPen(QPen( Qt::blue, 2 ));
     //    ui->plot->graph()->setBrush(QBrush(QColor(0, 0, 255, 20)));
 
     ui->plot->axisRect()->setupFullAxesBox(true);
@@ -61,7 +61,7 @@ Simulator::Simulator(QWidget *parent) :
     ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
 
     noEdit=true;
-    pqrstInit_1();
+//    pqrstInit_1();
     noEdit=false;
 
     connect(ui->action_open,SIGNAL(triggered()),this,SLOT(openFile()));
@@ -69,12 +69,9 @@ Simulator::Simulator(QWidget *parent) :
     connect(ui->cbNameSig,SIGNAL(currentIndexChanged(int)),this,SLOT(playPlot()));
     connect(ui->action_view_play,SIGNAL(toggled(bool)),this,SLOT(viewPlay(bool)));
 //    connect(ui->cb_sig,SIGNAL(currentIndexChanged(int)),this,SLOT(changeSig()));
-    connect(ui->cb_noise,SIGNAL(currentIndexChanged(int)),this,SLOT(changeSig()));
+
 //    connect(ui->m_comboBox_vid,SIGNAL(currentIndexChanged(int)),this,SLOT(changeSig()));
 //    connect(ui->m_comboBox_mod,SIGNAL(currentIndexChanged(int)),this,SLOT(changeSig()));
-    connect(ui->m_comboBox_vid,SIGNAL(currentIndexChanged(int)),this,SLOT(pqrstInit_1()));
-    connect(ui->m_comboBox_mod,SIGNAL(currentIndexChanged(int)),this,SLOT(pqrstInit_1()));
-    connect(ui->cb_sig,SIGNAL(currentIndexChanged(int)),this,SLOT(pqrstInit_1()));
 
     noEdit=true;
     viewPlay(false);
@@ -91,9 +88,6 @@ Simulator::Simulator(QWidget *parent) :
     connect(ui->pb_del,SIGNAL(pressed()),this,SLOT(del_row()));
     connect(ui->pb_edit,SIGNAL(pressed()),this,SLOT(edit_row()));
 
-    connect(ui->pb_1,SIGNAL(pressed()),this,SLOT(pqrstInit_1()));
-    connect(ui->pb_2,SIGNAL(pressed()),this,SLOT(pqrstInit_2()));
-    connect(ui->pb_3,SIGNAL(pressed()),this,SLOT(pqrstInit_3()));
 
     connect(ui->tableWidget,SIGNAL(currentCellChanged(int,int,int,int)),this,SLOT(changeList(int,int,int,int)));
 
@@ -119,19 +113,100 @@ Simulator::Simulator(QWidget *parent) :
 
     switchingModesPlayback();
 
-    ui->cb_sig->setCurrentIndex(5);
+    connect(ui->m_listView_diogram, &QListView::clicked, [this](){
+        auto index = ui->m_listView_diogram->currentIndex();
+        QStandardItemModel* model = static_cast<QStandardItemModel* >(ui->m_listView_diogram->model());
+        QStandardItem* item = model->item(index.row());
+        switch (m_currentSignal) {
+        case ListData::SignalEFS::EKG:
+            sl_showPlot_DiogramEKG(static_cast<ListData::DiogramEKG>(item->data().toInt()));
+            break;
+        case ListData::SignalEFS::EMG:
+            sl_showPlot_DiogramEMG(static_cast<ListData::DiogramEMG>(item->data().toInt()));
+            break;
+        case ListData::SignalEFS::EEG:
+            sl_showPlot_DiogramEEG(static_cast<ListData::DiogramEEG>(item->data().toInt()));
 
-//    ui->m_stackedWidget->addWidget(m_widgetControl);
+            break;
+        }
+    });
+
+    modelDiogramList = new QStandardItemModel();
+
+//    ui->widget_sig->setVisible(false);
+
+//
+//
+//    ui->m_stackedWidget->addWidget(m_widgetPlayback);
     ui->m_stackedWidget->addWidget(m_widgetTraining);
+    ui->m_stackedWidget->addWidget(m_widgetControl);
 
-    ui->plot->setVisible(false);
+//    ui->plot->hide();
+//    ui->widget_gen->hide();
+//    ui->w1->hide();
 
+//    connect(ui->action_start,SIGNAL(toggled(bool)),[this] (bool in) {
+//        m_widgetPlayback->startGen(in);
+//    });
 }
 
 Simulator::~Simulator()
 {
     delete ui;
 }
+
+void Simulator::show_DiogramEKG_Norm()
+{
+    modelDiogramList->clear();
+    auto map = ListData::getMapDiogramEKG_FORM_Norm();
+    QMap<ListData::DiogramEKG, QString>::iterator it;
+
+    int i = 1;
+    for(it = map.begin(); it != map.end(); it++) {
+        QStandardItem* item = new QStandardItem();
+        item->setText(QString("%1. ").arg(QString::number(i)) + it.value());
+        item->setData(it.key());
+        modelDiogramList->appendRow(item);
+        ++i;
+    }
+
+    ui->m_listView_diogram->setModel(modelDiogramList);
+}
+
+void Simulator::show_DiogramEMG_Norm()
+{
+    modelDiogramList->clear();
+    auto map = ListData::getMapDiogramEMG_Norm();
+    QMap<ListData::DiogramEMG, QString>::iterator it;
+
+    int i = 1;
+    for(it = map.begin(); it != map.end(); it++) {
+        QStandardItem* item = new QStandardItem();
+        item->setText(QString("%1. ").arg(QString::number(i)) + it.value());
+        item->setData(it.key());
+        modelDiogramList->appendRow(item);
+        ++i;
+    }
+    ui->m_listView_diogram->setModel(modelDiogramList);
+}
+
+void Simulator::show_DiogramEEG_Norm()
+{
+    modelDiogramList->clear();
+    auto map = ListData::getMapDiogramEEG_Norm();
+    QMap<ListData::DiogramEEG, QString>::iterator it;
+
+    int i = 1;
+    for(it = map.begin(); it != map.end(); it++) {
+        QStandardItem* item = new QStandardItem();
+        item->setText(QString("%1. ").arg(QString::number(i)) + it.value());
+        item->setData(it.key());
+        modelDiogramList->appendRow(item);
+        ++i;
+    }
+    ui->m_listView_diogram->setModel(modelDiogramList);
+}
+
 
 void Simulator::openFile() {
     fileName = QFileDialog::getOpenFileName(this, trUtf8("Открыть сигнал..."),
@@ -230,6 +305,8 @@ void Simulator::viewPlay(bool in) {
         ui->action_start->setText(trUtf8("Генерировать"));
         changeSig();
     }
+
+
 }
 
 void Simulator::changeSig() {
@@ -239,42 +316,42 @@ void Simulator::changeSig() {
     pointsX.clear();
     pointsY.clear();
     double amp_min = 0;
-    double amp_max = 1.1 * ui->dsb_sig_amp->value();
+    double amp_max = 0.1 * ui->dsb_sig_amp->value();
     double x_visible = 5;
 
-    ui->widget_pqrst->setVisible(ui->cb_sig->currentIndex() == 5);
-    ui->widget_sig->setVisible(ui->widget_pqrst->isHidden());
+    ui->widget_pqrst->setVisible(true);
+    ui->widget_sig->setVisible(false);
 
-    qDebug() << "sig=" << ui->cb_sig->currentIndex();
-    switch (ui->cb_sig->currentIndex()) {
-    case 0: {
-        sinusPlot();
-        setVisionCombobox(false);
-        break;
-    }
-    case 1: {
-        pilaPlot();
-        setVisionCombobox(false);
-        break;
-    }
-    case 2: {
-        trapPlot();
-        setVisionCombobox(false);
-        break;
-    }
-    case 3: {
-        parabPlot();
-        setVisionCombobox(false);
-        break;
-    }
-    case 4: {
-        impPlot();
-        setVisionCombobox(false);
-        break;
-    }
-    case 5: {
+//    qDebug() << "sig=" << ui->cb_sig->currentIndex();
+//    switch (ui->cb_sig->currentIndex()) {
+//    case 0: {
+//        sinusPlot();
+//        setVisionCombobox(false);
+//        break;
+//    }
+//    case 1: {
+//        pilaPlot();
+//        setVisionCombobox(false);
+//        break;
+//    }
+//    case 2: {
+//        trapPlot();
+//        setVisionCombobox(false);
+//        break;
+//    }
+//    case 3: {
+//        parabPlot();
+//        setVisionCombobox(false);
+//        break;
+//    }
+//    case 4: {
+//        impPlot();
+//        setVisionCombobox(false);
+//        break;
+//    }
+//    case 5: {
         pqrstPlot();
-        setVisionCombobox(true);
+//        setVisionCombobox(true);
 
         for (int k = 0; k < pointsY.size(); k++){
             double amp_i = pointsY.at(k);
@@ -285,9 +362,7 @@ void Simulator::changeSig() {
         }
 
         x_visible = v_data_pqrst.last().end;
-        break;
-    }
-    }
+
 
     noEdit = true;
     int x_vis = x_visible * 100 + 0.1;
@@ -298,104 +373,7 @@ void Simulator::changeSig() {
     ui->sliderX0->setMaximum(x_visible * 100 + 0.1 - ui->sliderX->value());
     noEdit = false;
 
-    qDebug() << "noise=" << ui->cb_noise->currentIndex();
-    switch (ui->cb_noise->currentIndex()) {
-    case 1: {
-        addWhiteNoise();
-        break;
-    }
-    case 2: {
-        addSin50Noise();
-        break;
-    }
-    case 3: {
-        addSinNoise();
-        break;
-    }
-    case 4: {
-        addWhiteNoise();
-        addSin50Noise();
-        break;
-    }
-    case 5: {
-        addWhiteNoise();
-        addSinNoise();
-        break;
-    }
-    case 6: {
-        addSin50Noise();
-        addSinNoise();
-        break;
-    }
-    case 7: {
-        addWhiteNoise();
-        addSin50Noise();
-        addSinNoise();
-        break;
-    }
-    }
 
-    //TODO обработка режим
-    if(isTraining) {
-        qDebug() << "mod=" << ui->m_comboBox_mod->currentIndex();
-        switch (ui->m_comboBox_mod->currentIndex()) {
-        case 0: {
-            // Режим
-            qDebug() << "vid=" << ui->m_comboBox_vid->currentIndex();
-            switch (ui->m_comboBox_vid->currentIndex()) {
-            case 0: {
-                // Норма
-                ui->plot->graph()->setPen(QPen( Qt::blue, 2 ));
-
-                ui->pb_1->setVisible(true);
-                ui->pb_2->setVisible(false);
-                ui->pb_3->setVisible(false);
-                break;
-            }
-            case 1: {
-                // Патология
-                ui->plot->graph()->setPen(QPen( Qt::red, 2 ));
-
-                ui->pb_1->setVisible(true);
-                ui->pb_2->setVisible(true);
-                ui->pb_3->setVisible(false);
-                break;
-            }
-                break;
-            }
-            break;
-        }
-        case 1: {
-            // Форма
-            qDebug() << "vid=" << ui->m_comboBox_vid->currentIndex();
-            switch (ui->m_comboBox_vid->currentIndex()) {
-            case 0: {
-                // Норма
-                ui->plot->graph()->setPen(QPen( Qt::blue, 2 ));
-
-                ui->pb_1->setVisible(true);
-                ui->pb_2->setVisible(false);
-                ui->pb_3->setVisible(false);
-                break;
-            }
-            case 1: {
-                // Патология
-                ui->plot->graph()->setPen(QPen( Qt::red, 2 ));
-
-                ui->pb_1->setVisible(true);
-                ui->pb_2->setVisible(true);
-                ui->pb_3->setVisible(true);
-                break;
-            }
-                break;
-            }
-        }
-        break;
-        }
-
-    } else {
-         ui->plot->graph()->setPen(QPen( Qt::blue, 2 ));
-    }
 
     double amp_dif = amp_max - amp_min;
     amp_min -= 0.1 * amp_dif;
@@ -446,9 +424,9 @@ void Simulator::edit_row()
     ui->pb_del->setHidden(h);
     ui->pb_edit->setChecked(h);
 
-    ui->pb_1->setHidden(h);
-    ui->pb_2->setHidden(h);
-    ui->pb_3->setHidden(h);
+//    ui->pb_1->setHidden(h);
+//    ui->pb_2->setHidden(h);
+//    ui->pb_3->setHidden(h);
 }
 
 void Simulator::changeList(int i, int, int i_b, int)
@@ -475,108 +453,6 @@ void Simulator::changeList(int i, int, int i_b, int)
     ui->dsb_amp_shift->setValue(v_data_pqrst[i].amp_shift);
     ui->dsb_time_shift->setValue(v_data_pqrst[i].time_shift);
     noEdit = false;
-}
-
-void Simulator::pqrstInit_1()
-{
-    if(isTraining) {
-        switch (ui->m_comboBox_mod->currentIndex()) {
-        case 0: {
-            // Режим
-            switch (ui->m_comboBox_vid->currentIndex()) {
-            case 0: {
-                // Норма
-                this->fun_training_mode_norm();
-                break;
-            }
-            case 1: {
-                // Патология
-                this->fun_training_mode_pathology1();
-                break;
-            }
-                break;
-            }
-            break;
-        }
-        case 1: {
-            // Форма
-            switch (ui->m_comboBox_vid->currentIndex()) {
-            case 0: {
-                // Норма
-                this->fun_training_form_norm();
-                break;
-            }
-            case 1: {
-                // Патология
-                this->fun_training_form_pathology1();
-                break;
-            }
-                break;
-            }
-        }
-            break;
-        }
-
-    } else {
-
-        this->fun_play_ECG();
-    }
-}
-
-void Simulator::pqrstInit_2()
-{
-    if(isTraining) {
-        switch (ui->m_comboBox_mod->currentIndex()) {
-        case 0: {
-            // Режим
-            switch (ui->m_comboBox_vid->currentIndex()) {
-            case 1: {
-                // Патология
-                this->fun_training_mode_pathology2();
-                break;
-            }
-                break;
-            }
-            break;
-        }
-        case 1: {
-            // Форма
-            switch (ui->m_comboBox_vid->currentIndex()) {
-            case 1: {
-                // Патология
-                this->fun_training_form_pathology2();
-                break;
-            }
-                break;
-            }
-            break;
-        }
-        }
-    } else {
-        this->fun_play_EMG();
-    }
-}
-
-void Simulator::pqrstInit_3()
-{
-    if(isTraining) {
-        switch (ui->m_comboBox_mod->currentIndex()) {
-        case 1: {
-            // Форма
-            switch (ui->m_comboBox_vid->currentIndex()) {
-            case 1: {
-                // Патология
-                this->fun_training_form_pathology3();
-                break;
-            }
-                break;
-            }
-            break;
-        }
-        }
-    } else {
-        this->fun_play_EEG();
-    }
 }
 
 void Simulator::changeDataSig(int sig)
@@ -613,6 +489,13 @@ void Simulator::changeDataSig(int sig)
         ui->dsb_amp->setValue(dur / 2);
         ui->dsb_dur->setValue(0.303 * dur);
         ui->dsb_time_shift->setValue(dur / 2);
+        break;
+    }
+
+    case 6: {
+        ui->dsb_amp->setValue(dur);
+        ui->dsb_dur->setValue(dur);
+        ui->dsb_time_shift->setValue(0);
         break;
     }
     }
@@ -838,9 +721,19 @@ void Simulator::pqrstPlot()
                 break;
             }
             case 5: {
-                Y = v_data_pqrst[k].amp * (X - shift) + v_data_pqrst[k].amp_shift;
-                addWhiteNoise();
-//                addSinNoise();
+                Y = v_data_pqrst[k].amp;
+                X = v_data_pqrst[k].end;
+                i = end;
+                break;
+            }
+            case 6: {
+                double X1 = (i-1)/N;
+                double Y1 = Y;
+                double BC = (X - X1) * tan(v_data_pqrst[k].amp);
+
+                Y = Y1 + BC;
+//                X = v_data_pqrst[k].end ;
+//                i = end;
                 break;
             }
             }//switch
@@ -943,6 +836,8 @@ void Simulator::plotX0(int in)
 
 void Simulator::startGen(bool in)
 {
+
+
     ui->widget_gen->setDisabled(in);
     ui->sliderX0->setDisabled(in);
     ui->sliderX->setDisabled(in);
@@ -998,1793 +893,37 @@ void Simulator::updatePlot()
 
 void Simulator::switchingModesTraining()
 {
-    typeOfMode =  TypeOfMode::TRAINING;
     isTraining = true;
 
-    ui->m_comboBox_vid->setVisible(true);
-    ui->label_vid->setVisible(true);
-
-    ui->m_comboBox_mod->setVisible(true);
-    ui->label_mod->setVisible(true);
-
-    ui->pb_2->setVisible(false);
-    ui->pb_3->setVisible(false);
-
-    ui->m_comboBox_vid->setCurrentIndex(0);
-    ui->m_comboBox_mod->setCurrentIndex(0);
-
-    this->pqrstInit_1();
+    ui->m_widget_play->hide();
+   ui->m_stackedWidget->setCurrentIndex(0);
 }
 
 void Simulator::switchingModesPlayback()
 {
-    typeOfMode =  TypeOfMode::PLAY;
     isTraining = false;
 
-    ui->m_comboBox_vid->setVisible(false);
-    ui->label_vid->setVisible(false);
-
-    ui->m_comboBox_mod->setVisible(false);
-    ui->label_mod->setVisible(false);
-
-    ui->pb_2->setVisible(true);
-    ui->pb_3->setVisible(true);
-
-    this->pqrstInit_1();
+    ui->m_widget_play->show();
+    ui->m_stackedWidget->hide();
 }
 
 void Simulator::switchingModesControl()
 {
-    typeOfMode =  TypeOfMode::CONTROL;
 
-    ui->m_stackedWidget->setCurrentIndex(0);
-}
-
-void Simulator::fun_play_ECG()
-{
-    qDebug() << "fun_play_ECG";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭКГ") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.22;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.46;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.11;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.0;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.22;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.46;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.11;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 2.0;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-}
-
-void Simulator::fun_play_EMG()
-{
-    qDebug() << "fun_play_EMG";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭМГ") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-
-//    double max = 1;
-//    for (double i =0; i < max;) {
-//        i += 0.01;
-//        data_pqrst.name = QString("Отрезок №%1").arg(i);
-//        data_pqrst.sig = 5;
-//        data_pqrst.end = i;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = 0;
-//        data_pqrst.amp_shift = 0.5;
-//        v_data_pqrst.push_back(data_pqrst);
-//    }
-
-        data_pqrst.name = "Отрезок 1";
-        data_pqrst.sig = 5;
-        data_pqrst.end = 1;
-        data_pqrst.time_shift = 0;
-        data_pqrst.amp = 0;
-        data_pqrst.amp_shift = 0.5;
-        v_data_pqrst.push_back(data_pqrst);
-
-
-
-
-//        data_pqrst.name = "R зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.02;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = -0.5;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-//        data_pqrst.name = "P зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.03;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = 0.6;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-//        data_pqrst.name = "R зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.04;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = -0.6;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-//        data_pqrst.name = "P зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.05;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = 0.7;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-//        data_pqrst.name = "R зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.06;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = -0.7;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-//        data_pqrst.name = "P зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.07;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = 0.5;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-//        data_pqrst.name = "R зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.08;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = -0.7;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-//        data_pqrst.name = "P зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.09;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = 0.7;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-//        data_pqrst.name = "R зубец";
-//        data_pqrst.sig = 4;
-//        data_pqrst.end = 0.10;
-//        data_pqrst.time_shift = 0;
-//        data_pqrst.amp = -0.7;
-//        data_pqrst.amp_shift = 0;
-//        v_data_pqrst.push_back(data_pqrst);
-
-
-
-//    data_pqrst.name = "P зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.01;
-//    data_pqrst.dur = 0.01;
-//    data_pqrst.time_shift = -0.01;
-//    data_pqrst.amp = 0.2;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "R зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.02;
-//    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = -0.04;
-//    data_pqrst.amp = 0.06;
-//    data_pqrst.amp_shift = 0.07;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "S зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.03;
-//    data_pqrst.dur = 0.08;
-//    data_pqrst.time_shift = 0.02;
-//    data_pqrst.amp = -0.38;
-//    data_pqrst.amp_shift = 0.08;
-//    v_data_pqrst.push_back(data_pqrst);
-
-
-//    data_pqrst.name = "P зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.04;
-//    data_pqrst.dur = 0.01;
-//    data_pqrst.time_shift = 0;
-//    data_pqrst.amp = 0.04;
-//    data_pqrst.amp_shift = 0.04;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "R зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.06;
-//    data_pqrst.dur = 0.03;
-//    data_pqrst.time_shift = 0;
-//    data_pqrst.amp = 0.09;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "S зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.13;
-//    data_pqrst.dur = 0.03;
-//    data_pqrst.time_shift = 0.06;
-//    data_pqrst.amp = -0.2;
-//    data_pqrst.amp_shift = -0.01;
-//    v_data_pqrst.push_back(data_pqrst);
-
-
-//    data_pqrst.name = "P зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.15;
-//    data_pqrst.dur = 0.04;
-//    data_pqrst.time_shift = 0.01;
-//    data_pqrst.amp = 0.21;
-//    data_pqrst.amp_shift = -0.16;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "R зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.16;
-//    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = 0;
-//    data_pqrst.amp = 0.07;
-//    data_pqrst.amp_shift = -0.16;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "S зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.18;
-//    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = 0.01;
-//    data_pqrst.amp = -0.31;
-//    data_pqrst.amp_shift = -0.03;
-//    v_data_pqrst.push_back(data_pqrst);
-
-
-//    data_pqrst.name = "P зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.21;
-//    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = 0.03;
-//    data_pqrst.amp = -0.2;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "R зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.22;
-//    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = 0.04;
-//    data_pqrst.amp = 0.01;
-//    data_pqrst.amp_shift = -0.03;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "S зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.24;
-//    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = 0.02;
-//    data_pqrst.amp = -0.2;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-
-//    data_pqrst.name = "P зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.26;
-//    data_pqrst.dur = 0.01;
-//    data_pqrst.time_shift = -0.03;
-//    data_pqrst.amp = -0.15;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "R зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.27;
-//    data_pqrst.dur = 0.01;
-//    data_pqrst.time_shift = -0.04;
-//    data_pqrst.amp = -0.1;
-//    data_pqrst.amp_shift = 0.01;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "S зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.32;
-//    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = 0.03;
-//    data_pqrst.amp = 0.08;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-
-//    data_pqrst.name = "P зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.36;
-//    data_pqrst.dur = 0.03;
-//    data_pqrst.time_shift = 0;
-//    data_pqrst.amp = 0.18;
-//    data_pqrst.amp_shift = -0.02;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "R зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.38;
-//    data_pqrst.dur = 0.03;
-//    data_pqrst.time_shift = 0;
-//    data_pqrst.amp = 0.09;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "S зубец";
-//    data_pqrst.sig = 4;
-//    data_pqrst.end = 0.39;
-////    data_pqrst.dur = 0.03;
-//    data_pqrst.time_shift = 0;
-//    data_pqrst.amp = -0.1;
-//    data_pqrst.amp_shift = -0.07;
-//    v_data_pqrst.push_back(data_pqrst);
-
-
-//    data_pqrst.name = "P зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.42;
-//    data_pqrst.dur = 0.03;
-//    data_pqrst.time_shift = 0.01;
-//    data_pqrst.amp = 0.16;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "R зубец";
-//    data_pqrst.sig = 4;
-//    data_pqrst.end = 0.43;
-////    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = 0;
-//    data_pqrst.amp = 0.54;
-//    data_pqrst.amp_shift = -0.37;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "S зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.45;
-//    data_pqrst.dur = 0.04;
-//    data_pqrst.time_shift = 0.00;
-//    data_pqrst.amp = -0.24;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-
-//    data_pqrst.name = "P зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.47;
-//    data_pqrst.dur = 0.01;
-//    data_pqrst.time_shift = 0.03;
-//    data_pqrst.amp = 0.22;
-//    data_pqrst.amp_shift = 0.02;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "R зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.49;
-//    data_pqrst.dur = 0.01;
-//    data_pqrst.time_shift = 0.04;
-//    data_pqrst.amp = 0.17;
-//    data_pqrst.amp_shift = -0.01;
-//    v_data_pqrst.push_back(data_pqrst);
-
-//    data_pqrst.name = "S зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 1.5;
-//    data_pqrst.dur = 0.02;
-//    data_pqrst.time_shift = 0.02;
-//    data_pqrst.amp = -0.2;
-//    data_pqrst.amp_shift = 0;
-//    v_data_pqrst.push_back(data_pqrst);
-
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-
-}
-
-void Simulator::fun_play_EEG()
-{
-    qDebug() << "fun_play_EEG";
-
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭЭГ. Альфа-ритм") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.1;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = -0.03;
-    data_pqrst.amp = 0.05;
-    data_pqrst.amp_shift = 0.8;
-    v_data_pqrst.push_back(data_pqrst);
-
-
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.2;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = -0.05;
-    data_pqrst.amp = -0.13;
-    data_pqrst.amp_shift = 0.76;
-    v_data_pqrst.push_back(data_pqrst);
-
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.44;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.79;
-    v_data_pqrst.push_back(data_pqrst);
-
-
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.49;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0.00;
-    data_pqrst.amp = -0.1;
-    data_pqrst.amp_shift = 0.79;
-    v_data_pqrst.push_back(data_pqrst);
-
-
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.53;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0.03;
-    data_pqrst.amp = 0.02;
-    data_pqrst.amp_shift = 0.72;
-    v_data_pqrst.push_back(data_pqrst);
-
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.6;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = -0.1;
-    data_pqrst.amp_shift = 0.79;
-    v_data_pqrst.push_back(data_pqrst);
-
-
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.69;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0.00;
-    data_pqrst.amp = 0.13;
-    data_pqrst.amp_shift = 0.78;
-    v_data_pqrst.push_back(data_pqrst);
-
-
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.77;
-    data_pqrst.dur = 0.12;
-    data_pqrst.time_shift = 0.01;
-    data_pqrst.amp = 0.07;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.88;
-    data_pqrst.dur = 0.13;
-    data_pqrst.time_shift = 0.07;
-    data_pqrst.amp = 0.08;
-    data_pqrst.amp_shift = 0.76;
-    v_data_pqrst.push_back(data_pqrst);
-
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.05;
-    data_pqrst.dur = 0.15;
-    data_pqrst.time_shift = 0.03;
-    data_pqrst.amp = -0.07;
-    data_pqrst.amp_shift = 0.78;
-    v_data_pqrst.push_back(data_pqrst);
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-}
-
-void Simulator::fun_training_mode_norm()
-{
-    qDebug() << "fun_training_mode_norm";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭКГ. Нормокардия") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.22;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.46;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.11;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.69;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.22;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.46;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.11;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 2.0;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-}
-
-void Simulator::fun_training_mode_pathology1()
-{
-    qDebug() << "fun_training_mode_pathology1";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭКГ. Брадикардия") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    QCPItemBracket *bracket = new QCPItemBracket(ui->plot);
-    bracket->left->setCoords(0, 1.1);
-    bracket->right->setCoords(2, 1.1);
-    bracket->setLength(13);
-    QCPItemText *wavePacketText = new QCPItemText(ui->plot);
-    wavePacketText->position->setParentAnchor(bracket->center);
-    wavePacketText->position->setCoords(0, -10); // move 10 pixels to the top from bracket center anchor
-    wavePacketText->setPositionAlignment(Qt::AlignBottom|Qt::AlignHCenter);
-    wavePacketText->setText("ЧСС <  60 уд/мин");
-    wavePacketText->setFont(QFont(font().family(), 10));
-
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.22;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.46;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.11;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.69;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 2.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 2.22;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 2.46;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.11;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 4.0;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-}
-
-void Simulator::fun_training_mode_pathology2()
-{
-    qDebug() << "fun_training_mode_pathology2";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭКГ. Тахикардия") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.04;
-//    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.22;
-//    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.35;
-//    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.55;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.60;
-//    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.64;
-//    data_pqrst.dur = 0;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.74;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.82;
-//    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.84;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.89;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.92;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.95;
-//    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.15;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.2;
-//    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.24;
-//    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.34;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.42;
-//    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.44;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.49;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.52;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.55;
-//    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.75;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.8;
-//    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.84;
-//    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 1.94;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 2.02;
-//    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.09;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.12;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 2.15;
-//    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 2.35;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.25;
-    data_pqrst.amp_shift = 0.75;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 2.4;
-//    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-}
-
-void Simulator::fun_training_form_norm()
-{
-    qDebug() << "fun_training_form_norm";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭКГ. Кардиоцикл") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.22;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.46;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.11;
-    data_pqrst.amp = 0.15;
-    data_pqrst.amp_shift = 0.65;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.0;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-}
-
-void Simulator::fun_training_form_pathology1()
-{
-    qDebug() << "fun_training_form_pathology1";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭКГ. Р-зубец отрицательный") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = -0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.24;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-//    data_pqrst.name = "Q зубец";
-//    data_pqrst.sig = 1;
-//    data_pqrst.end = 0.24;
-//    data_pqrst.dur = 0.04;
-//    data_pqrst.time_shift = 0;
-//    data_pqrst.amp = 0.2;
-//    data_pqrst.amp_shift = 0.5;
-//    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.32;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.46;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.11;
-    data_pqrst.amp = 0.15;
-    data_pqrst.amp_shift = 0.65;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.0;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-}
-
-void Simulator::fun_training_form_pathology2()
-{
-    qDebug() << "fun_training_form_pathology2";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭКГ. Двугорбый (двухфазный) P –зубец") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 2;
-    data_pqrst.end = 0.23;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.09;
-    data_pqrst.amp = 0.19;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.26;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.28;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.33;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.08;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.34;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.00;
-    data_pqrst.amp = 0.0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.5;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.03;
-    data_pqrst.amp = 0.1;
-    data_pqrst.amp_shift = 0.42;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1;
-    data_pqrst.dur = 0.38;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
-}
-
-void Simulator::fun_training_form_pathology3()
-{
-    qDebug() << "fun_training_form_pathology3";
-    v_data_pqrst.clear();
-    ui->label_plot->setText( QString::fromUtf8("ЭКГ. Патология сегмента S-T") );
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    data_pqrst.name = "до P зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.04;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.14;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "PQ интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.22;
-    data_pqrst.dur = 0.08;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "Q зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.24;
-    data_pqrst.dur = 0.04;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0.2;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.29;
-    data_pqrst.dur = 0.1;
-    data_pqrst.time_shift = 0.04;
-    data_pqrst.amp = 1;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "S зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.31;
-    data_pqrst.dur = 0.06;
-    data_pqrst.time_shift = 0.02;
-    data_pqrst.amp = 0.3;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "ST интервал";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 0.59;
-    data_pqrst.dur = 0.14;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.25;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "T зубец";
-    data_pqrst.sig = 1;
-    data_pqrst.end = 0.66;
-    data_pqrst.dur = 0.2;
-    data_pqrst.time_shift = 0.01;
-    data_pqrst.amp = 0.16;
-    data_pqrst.amp_shift = 0.34;
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "после T зубца";
-    data_pqrst.sig = 4;
-    data_pqrst.end = 1.0;
-    data_pqrst.dur = 0.34;
-    data_pqrst.time_shift = 0;
-    data_pqrst.amp = 0;
-    data_pqrst.amp_shift = 0.5;
-    v_data_pqrst.push_back(data_pqrst);
-
-    bool in = noEdit;
-    noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
-    int k = v_data_pqrst.size();
-    ui->tableWidget->setRowCount(k);
-
-    for (int i=0; i<k; i++) {
-        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-    }
-
-    ui->tableWidget->selectRow(0);
-
-    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-    ui->sliderX->setMaximum(x_max);
-    ui->sliderX->setValue(x_max);
-
-    if (!in) noEdit = false;
-    if (ui->action_view_play->isChecked()) playPlot();
-    else changeSig();
+    ui->m_widget_play->hide();
+    ui->m_stackedWidget->setCurrentIndex(1);
 }
 
 void Simulator::setVisionCombobox(bool in)
 {
-    if(isTraining){
-    ui->label_mod->setVisible(in);
-    ui->label_vid->setVisible(in);
-    ui->m_comboBox_mod->setVisible(in);
-    ui->m_comboBox_vid->setVisible(in);
-    if(!in)
-        ui->m_comboBox_vid->setCurrentIndex(0);
-    }
+//    if(isTraining){
+//    ui->label_mod->setVisible(in);
+//    ui->label_vid->setVisible(in);
+//    ui->m_comboBox_mod->setVisible(in);
+//    ui->m_comboBox_vid->setVisible(in);
+//    if(!in)
+//        ui->m_comboBox_vid->setCurrentIndex(0);
+//    }
 }
 
 void Simulator::setRand(double last, double first, int count)
@@ -2804,5 +943,858 @@ void Simulator::setRand(double last, double first, int count)
         pointsY.push_back(Y);
         i++;
     }//while
+}
+
+
+void Simulator::on_m_pushButton_ecg_clicked()
+{
+    m_currentSignal = ListData::SignalEFS::EKG;
+    show_DiogramEKG_Norm();
+    QModelIndex firstIndex = modelDiogramList->index(0, 0);
+    ui->m_listView_diogram->setCurrentIndex(firstIndex);
+    ui->m_listView_diogram->clicked(firstIndex);
+}
+
+
+void Simulator::on_m_pushButton_emg_clicked()
+{
+    m_currentSignal = ListData::SignalEFS::EMG;
+    show_DiogramEMG_Norm();
+    QModelIndex firstIndex = modelDiogramList->index(0, 0);
+    ui->m_listView_diogram->setCurrentIndex(firstIndex);
+    ui->m_listView_diogram->clicked(firstIndex);
+}
+
+
+void Simulator::on_m_pushButton_eeg_clicked()
+{
+    m_currentSignal = ListData::SignalEFS::EEG;
+    show_DiogramEEG_Norm();
+    QModelIndex firstIndex = modelDiogramList->index(0, 0);
+    ui->m_listView_diogram->setCurrentIndex(firstIndex);
+    ui->m_listView_diogram->clicked(firstIndex);
+}
+
+void Simulator::show_DiogramEKG_FORM_Norm()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+    data_pqrst.name = "до P зубца";
+    data_pqrst.sig = 4;
+    data_pqrst.end = 0.12;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 0;
+    data_pqrst.amp_shift = 0.29;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "P зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.2;
+    data_pqrst.dur = 0.16;
+    data_pqrst.time_shift = -0.04;
+    data_pqrst.amp = 0.05;
+    data_pqrst.amp_shift = 0.29;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "PQ интервал";
+    data_pqrst.sig = 4;
+    data_pqrst.end = 0.27;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 0;
+    data_pqrst.amp_shift = 0.29;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.3;
+    data_pqrst.amp = -9.43;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "R зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.33;
+    data_pqrst.amp = 78.62;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "R зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.36;
+    data_pqrst.amp = -9.51;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "S зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.38;
+    data_pqrst.amp = 78.56;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "ST интервал";
+    data_pqrst.sig = 4;
+    data_pqrst.end = 0.48;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 0;
+    data_pqrst.amp_shift = 0.29;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "T зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.64;
+    data_pqrst.dur = 0.32;
+    data_pqrst.time_shift = 0.16;
+    data_pqrst.amp = 0.1;
+    data_pqrst.amp_shift = 0.29;
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "после T зубца";
+    data_pqrst.sig = 4;
+    data_pqrst.end = 1;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 0;
+    data_pqrst.amp_shift = 0.29;
+    v_data_pqrst.push_back(data_pqrst);
+
+        bool in = noEdit;
+        noEdit = true;
+        ui->dsb_sig_amp->setValue(1);
+        int k = v_data_pqrst.size();
+        ui->tableWidget->setRowCount(k);
+
+        for (int i=0; i<k; i++) {
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+        }
+
+        ui->tableWidget->selectRow(0);
+
+        int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+        ui->sliderX->setMaximum(x_max);
+        ui->sliderX->setValue(x_max);
+        if (!in) noEdit = false;
+        if (ui->action_view_play->isChecked()) playPlot();
+        else changeSig();
+}
+
+void Simulator::show_DiogramEMG_Norm_plot()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    //Количество отрезков
+    int count = 500;
+    int start = 10;
+    int end = 30;
+
+    srand(time(NULL));
+    for(int i = 1; i <= count; ++i) {
+        if(i % 23 == 0 || i % 22 == 0) {
+            start = 40;
+            end = 50;
+        } else {
+            start = 10;
+            end = 30;
+        }
+
+        double x = rand() % (end - start +1) + start;
+        data_pqrst.name = QString("Отрезок%1").arg(QString::number(i));
+        data_pqrst.sig = 5;
+        data_pqrst.end = (double)i/1000;
+
+        if(i % 2 == 0) {
+            x = 50 + x;
+
+        } else {
+            x = 50 - x;
+        }
+        data_pqrst.amp = (double)x/10;
+        v_data_pqrst.push_back(data_pqrst);
+    }
+
+        bool in = noEdit;
+        noEdit = true;
+        ui->dsb_sig_amp->setValue(1);
+        int k = v_data_pqrst.size();
+        ui->tableWidget->setRowCount(k);
+
+        for (int i=0; i<k; i++) {
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+        }
+
+        ui->tableWidget->selectRow(0);
+
+        int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+        ui->sliderX->setMaximum(x_max);
+        ui->sliderX->setValue(x_max);
+        if (!in) noEdit = false;
+        if (ui->action_view_play->isChecked()) playPlot();
+        else changeSig();
+}
+
+void Simulator::show_DiogramEEG_Norm_1()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.16;
+    data_pqrst.dur = 0.08;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 0.05;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.3;
+    data_pqrst.dur = 0.14;
+    data_pqrst.time_shift = 0.02;
+    data_pqrst.amp = 0.08;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.45;
+    data_pqrst.dur = 0.1;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = 0.1;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.59;
+    data_pqrst.dur = 0.14;
+    data_pqrst.time_shift = -0.18;
+    data_pqrst.amp = 0.08;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.65;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 0.008;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.8;
+    data_pqrst.dur = 0.1;
+    data_pqrst.time_shift = 0.1;
+    data_pqrst.amp = -0.08;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.9;
+    data_pqrst.dur = 0.1;
+    data_pqrst.time_shift = 0.1;
+    data_pqrst.amp = -0.05;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 1;
+    data_pqrst.dur = 0.1;
+    data_pqrst.time_shift = 0.1;
+    data_pqrst.amp = 0.05;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+        bool in = noEdit;
+        noEdit = true;
+        ui->dsb_sig_amp->setValue(1);
+        int k = v_data_pqrst.size();
+        ui->tableWidget->setRowCount(k);
+
+        for (int i=0; i<k; i++) {
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+        }
+
+        ui->tableWidget->selectRow(0);
+
+        int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+        ui->sliderX->setMaximum(x_max);
+        ui->sliderX->setValue(x_max);
+        if (!in) noEdit = false;
+        if (ui->action_view_play->isChecked()) playPlot();
+        else changeSig();
+}
+
+void Simulator::show_DiogramEEG_Norm_2()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.02;
+    data_pqrst.dur = 0.02;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.04;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -15;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.1;
+    data_pqrst.dur = 0.06;
+    data_pqrst.time_shift = -0.02;
+    data_pqrst.amp = 5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.12;
+    data_pqrst.amp = 17.12;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.13;
+    data_pqrst.amp = 8.30;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.14;
+    data_pqrst.amp = 13.48;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.15;
+    data_pqrst.amp = -17.20;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.16;
+    data_pqrst.amp = 14.04;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.17;
+    data_pqrst.amp = -17.18;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.18;
+    data_pqrst.amp = 32.92;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.19;
+    data_pqrst.amp = -32.94;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.21;
+    data_pqrst.amp = 14.02;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.22;
+    data_pqrst.amp = 8.43;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.23;
+    data_pqrst.amp = 16.82;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 6;
+    data_pqrst.end = 0.24;
+    data_pqrst.amp = -1.43;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.28;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -13;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.32;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.4;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -13;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.44;
+    data_pqrst.dur = 0.02;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.48;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -13;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.54;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -20;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.59;
+    data_pqrst.dur = 0.02;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.65;
+    data_pqrst.dur = 0.03;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 20;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.68;
+    data_pqrst.dur = 0.03;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 15;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.72;
+    data_pqrst.dur = 0.03;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.76;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.042;
+    data_pqrst.amp = -20;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.81;
+    data_pqrst.dur = 0.03;
+    data_pqrst.time_shift = 0.06;
+    data_pqrst.amp = 5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.87;
+    data_pqrst.dur = 0.04;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 20;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.915;
+    data_pqrst.dur = 0.03;
+    data_pqrst.time_shift = 0.06;
+    data_pqrst.amp = -5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.965;
+    data_pqrst.dur = 0.03;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = 20;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "Q зубец";
+    data_pqrst.sig = 5;
+    data_pqrst.end = 0.985;
+    data_pqrst.amp = -5;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 1;
+    data_pqrst.dur = 0.02;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    bool in = noEdit;
+    noEdit = true;
+    ui->dsb_sig_amp->setValue(1);
+    int k = v_data_pqrst.size();
+    ui->tableWidget->setRowCount(k);
+
+    for (int i=0; i<k; i++) {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+    }
+
+    ui->tableWidget->selectRow(0);
+
+    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    if (!in) noEdit = false;
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+}
+
+void Simulator::show_DiogramEEG_Norm_3()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.1;
+    data_pqrst.dur = 0.2;
+    data_pqrst.time_shift = 0.1;
+    data_pqrst.amp = -20;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.25;
+    data_pqrst.dur = 0.1;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = -5;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.35;
+    data_pqrst.dur = 0.2;
+    data_pqrst.time_shift = 0.15;
+    data_pqrst.amp = -20;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.45;
+    data_pqrst.dur = 0.1;
+    data_pqrst.time_shift = 0.0;
+    data_pqrst.amp = 10;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.65;
+    data_pqrst.dur = 0.2;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = -10;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 0.88;
+    data_pqrst.dur = 0.15;
+    data_pqrst.time_shift = -0.025;
+    data_pqrst.amp = 50;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 1.06;
+    data_pqrst.dur = 0.2;
+    data_pqrst.time_shift = -0.14;
+    data_pqrst.amp = 20;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    bool in = noEdit;
+    noEdit = true;
+    ui->dsb_sig_amp->setValue(1);
+    int k = v_data_pqrst.size();
+    ui->tableWidget->setRowCount(k);
+
+    for (int i=0; i<k; i++) {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+    }
+
+    ui->tableWidget->selectRow(0);
+
+    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    if (!in) noEdit = false;
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+}
+
+void Simulator::show_DiogramEEG_Norm_4()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    //Количество отрезков
+    int count = 1000;
+    int start = 2;
+    int end = 15;
+
+    srand(time(NULL));
+    for(int i = 0; i <= count; ++i) {
+        double x = rand() % (end - start +1) + start;
+        data_pqrst.name = QString("Отрезок%1").arg(QString::number(i));
+        data_pqrst.sig = 5;
+        data_pqrst.end = (double)i/1000;
+
+        if(i % 2 == 0) {
+            x = 15 + x;
+
+        } else {
+            x = 15 - x;
+        }
+        data_pqrst.amp = (double)x/100;
+        v_data_pqrst.push_back(data_pqrst);
+    }
+
+    bool in = noEdit;
+    noEdit = true;
+    ui->dsb_sig_amp->setValue(1);
+    int k = v_data_pqrst.size();
+    ui->tableWidget->setRowCount(k);
+
+    for (int i=0; i<k; i++) {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+    }
+
+    ui->tableWidget->selectRow(0);
+
+    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    if (!in) noEdit = false;
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+}
+
+void Simulator::show_DiogramEEG_Norm_5()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = "P1 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 1.85;
+    data_pqrst.dur = 3.8;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 1;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P1 интервал";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 2.2;
+    data_pqrst.dur = 0.84;
+    data_pqrst.time_shift = 0.39;
+    data_pqrst.amp = 0.1;
+    data_pqrst.amp_shift = 0.2;
+    v_data_pqrst.push_back(data_pqrst);
+
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "P2 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 2.8;
+    data_pqrst.dur = 2;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 0.3;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P2 интервал";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 3.2;
+    data_pqrst.dur = 0.88;
+    data_pqrst.time_shift = 0.33;
+    data_pqrst.amp = 0.1;
+    data_pqrst.amp_shift = 0.2;
+    v_data_pqrst.push_back(data_pqrst);
+
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "P3 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 4.75;
+    data_pqrst.dur = 3.8;
+    data_pqrst.time_shift = 0.05;
+    data_pqrst.amp = 0.8;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P3 интервал";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 5.3;
+    data_pqrst.dur = 0.9;
+    data_pqrst.time_shift = 0.33;
+    data_pqrst.amp = 0.1;
+    data_pqrst.amp_shift = 0.24;
+    v_data_pqrst.push_back(data_pqrst);
+
+    v_data_pqrst.push_back(data_pqrst);
+    data_pqrst.name = "P4 зубец";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 6.85;
+    data_pqrst.dur = 3.8;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 0.6;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    data_pqrst.name = "P4 интервал";
+    data_pqrst.sig = 1;
+    data_pqrst.end = 7.23;
+    data_pqrst.dur = 0.9;
+    data_pqrst.time_shift = 0.47;
+    data_pqrst.amp = 0.1;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    bool in = noEdit;
+    noEdit = true;
+    ui->dsb_sig_amp->setValue(1);
+    int k = v_data_pqrst.size();
+    ui->tableWidget->setRowCount(k);
+
+    for (int i=0; i<k; i++) {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+    }
+
+    ui->tableWidget->selectRow(0);
+
+    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    if (!in) noEdit = false;
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+}
+
+
+void Simulator::sl_showPlot_DiogramEKG(ListData::DiogramEKG type)
+{
+    switch (type) {
+    case ListData::EKG_NORM_2:
+        show_DiogramEKG_FORM_Norm();
+        break;
+    }
+}
+
+void Simulator::sl_showPlot_DiogramEMG(ListData::DiogramEMG type)
+{
+    switch (type) {
+    case ListData::EMG_NORM:
+        show_DiogramEMG_Norm_plot();
+        break;
+    }
+}
+
+void Simulator::sl_showPlot_DiogramEEG(ListData::DiogramEEG type)
+{
+    switch (type) {
+    case ListData::EEG_NORM_1:
+        show_DiogramEEG_Norm_1();
+        break;
+    case ListData::EEG_NORM_2:
+        show_DiogramEEG_Norm_2();
+        break;
+    case ListData::EEG_NORM_3:
+        show_DiogramEEG_Norm_3();
+        break;
+    case ListData::EEG_NORM_4:
+        show_DiogramEEG_Norm_4();
+        break;
+    case ListData::EEG_NORM_5:
+        show_DiogramEEG_Norm_5();
+        break;
+//    case ListData::EEG_PATOLOGY1:
+//        show_DiogramEEG_Patology1();
+//        break;
+//    case ListData::EEG_PATOLOGY2:
+//        show_DiogramEEG_Patology2();
+//        break;
+//    case ListData::EEG_PATOLOGY3:
+//        show_DiogramEEG_Patology3();
+//        break;
+//    case ListData::EEG_PATOLOGY4:
+//        show_DiogramEEG_Patology4();
+//        break;
+//    case ListData::EEG_PATOLOGY5:
+//        show_DiogramEEG_Patology5();
+//        break;
+//    case ListData::EEG_PATOLOGY6:
+//        show_DiogramEEG_Patology6();
+//        break;
+    }
 }
 

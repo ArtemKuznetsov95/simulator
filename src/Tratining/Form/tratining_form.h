@@ -36,6 +36,8 @@ public:
     void show_DiogramEEG_Patology();
 
 public slots:
+
+
     void currentSignalEFS(ListData::Signal type);
     void sl_selectDirection();
     void sl_currentEKG();

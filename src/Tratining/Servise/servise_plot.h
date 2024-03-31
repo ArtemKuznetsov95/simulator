@@ -10,16 +10,29 @@
 
 class Servise_plot : public QWidget
 {
+    Q_OBJECT
 public:
     Servise_plot(QWidget* parent = 0);
 
-    void  sl_showPlot(bool metka);
+//    void  sl_showPlot(bool metka);
 
     void sl_showPlot_DiogramEKG(ListData::DiogramEKG type);
     void sl_showPlot_DiogramEMG(ListData::DiogramEMG type);
     void sl_showPlot_DiogramEEG(ListData::DiogramEEG type);
 
+public slots:
+    void plotX(int value);
+    void plotX0(int value);
+
+    void startGen(bool in);
+    void setIsPlay(bool in);
+    void playPlot();
+
 private:
+    void updatePlot();
+    void changeSig();
+
+
     void show_DiogramEKG_BEAT_Norm();
     void show_DiogramEKG_BEAT_Patology1();
     void show_DiogramEKG_BEAT_Patology2();
@@ -50,12 +63,36 @@ private:
     void show_DiogramEEG_Patology5();
     void show_DiogramEEG_Patology6();
 
+    void createItemLine(double begin, double end, double y, QString name = 0);
+    void createItemLineDashLine(double begin, double end, double x);
+    void createItemText(double X, double Y, QString name);
+
+
+
 private:
     QStackedWidget* m_stackWidget;
     QCustomPlot* plot;
     _data_pqrst_ data_pqrst;
     QVector<_data_pqrst_> v_data_pqrst;
     QVBoxLayout* vbl;
+
+    QSlider* sliderX0;
+    QSlider* sliderX;
+
+    struct Data {
+        QVector <double> pointsX;
+        QVector <double> pointsY;
+        int data_frec;
+        double data_max;
+        double data_min;
+    } d;
+    QVector <struct Data> data;
+    QVector <double> pointsX, pointsY;
+    QVector <double> pointsXg, pointsYg;
+    int it;
+    QTimer *timer;
+    bool isPlay = false;
+    int valueSlider = 0;
 };
 
 #endif // SERVISE_PLOT_H

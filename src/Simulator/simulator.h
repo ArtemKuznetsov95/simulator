@@ -7,6 +7,10 @@
 #include <Control/Form/controlmode_form.h>
 #include <Tratining/Form/tratining_form.h>
 
+#include <QMap>
+#include <QStandardItemModel>
+#include <QButtonGroup>
+
 namespace Ui {
 class Simulator;
 }
@@ -39,13 +43,6 @@ private:
     ControlMode_Form *m_widgetControl;
     Tratining_Form * m_widgetTraining;
 
-    enum TypeOfMode {
-        PLAY = 0,
-        TRAINING = 1,
-        CONTROL = 2
-    };
-    TypeOfMode typeOfMode;
-
     QString fileName;
     struct Data {
         QVector <double> pointsX;
@@ -70,23 +67,26 @@ private:
     void addSin50Noise();
     void addSinNoise();
 
-
     QVector<_data_pqrst> v_data_pqrst;
     bool noEdit;
     QTimer *timer;
     int it;
+    ListData::SignalEFS m_currentSignal;
 
     bool isTraining = false;
+    QStandardItemModel* modelDiogramList;
 
 private slots:
+
+
+    void show_DiogramEKG_Norm();
+    void show_DiogramEMG_Norm();
+    void show_DiogramEEG_Norm();
+
     void openFile();
     void viewPlay(bool);
     void startGen(bool);
     void changeSig();
-
-    void pqrstInit_1();
-    void pqrstInit_2();
-    void pqrstInit_3();
 
     void changeDataSig(int sig);
     void changeDataEnd(double val);
@@ -112,19 +112,29 @@ private slots:
     void switchingModesControl();
 
 
-    void fun_play_ECG();
-    void fun_play_EMG();
-    void fun_play_EEG();
-    void fun_training_mode_norm();
-    void fun_training_mode_pathology1();
-    void fun_training_mode_pathology2();
-    void fun_training_form_norm();
-    void fun_training_form_pathology1();
-    void fun_training_form_pathology2();
-    void fun_training_form_pathology3();
 
     void setVisionCombobox(bool in);
     void setRand(double last, double first, int count);
+
+    void on_m_pushButton_ecg_clicked();
+    void on_m_pushButton_emg_clicked();
+    void on_m_pushButton_eeg_clicked();
+
+
+    void sl_showPlot_DiogramEKG(ListData::DiogramEKG type);
+    void sl_showPlot_DiogramEMG(ListData::DiogramEMG type);
+    void sl_showPlot_DiogramEEG(ListData::DiogramEEG type);
+
+
+    void show_DiogramEKG_FORM_Norm();
+    void show_DiogramEMG_Norm_plot();
+    void show_DiogramEEG_Norm_1();
+    void show_DiogramEEG_Norm_2();
+    void show_DiogramEEG_Norm_3();
+    void show_DiogramEEG_Norm_4();
+    void show_DiogramEEG_Norm_5();
+
+
 
 };
 

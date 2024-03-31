@@ -74,9 +74,13 @@ Tratining_Form::Tratining_Form(QWidget *parent) :
             m_plot->sl_showPlot_DiogramEMG(static_cast<ListData::DiogramEMG>(item->data().toInt()));
             break;
         case ListData::SignalEFS::EEG:
+            m_plot->sl_showPlot_DiogramEEG(static_cast<ListData::DiogramEEG>(item->data().toInt()));
+
             break;
         }
     });
+
+    ui->m_pushButton_ekg->click();
 }
 
 Tratining_Form::~Tratining_Form()
@@ -141,7 +145,6 @@ void Tratining_Form::show_DiogramEKG_BEAT_Patology()
         ++i;
     }
     ui-> m_listView_diogram->setModel(modelDiogramList);
-//    m_plot->sl_showPlot(false);
 }
 
 void Tratining_Form::show_DiogramEKG_FORM_Norm()
@@ -246,6 +249,7 @@ void Tratining_Form::show_DiogramEEG_Patology()
     }
     ui-> m_listView_diogram->setModel(modelDiogramList);
 }
+
 
 void Tratining_Form::currentSignalEFS(ListData::Signal type)
 {
