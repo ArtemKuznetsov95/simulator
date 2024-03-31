@@ -14,19 +14,9 @@ class Servise_plot : public QWidget
 public:
     Servise_plot(QWidget* parent = 0);
 
-//    void  sl_showPlot(bool metka);
-
     void sl_showPlot_DiogramEKG(ListData::DiogramEKG type);
     void sl_showPlot_DiogramEMG(ListData::DiogramEMG type);
     void sl_showPlot_DiogramEEG(ListData::DiogramEEG type);
-
-public slots:
-    void plotX(int value);
-    void plotX0(int value);
-
-    void startGen(bool in);
-    void setIsPlay(bool in);
-    void playPlot();
 
 private:
     void updatePlot();
@@ -75,24 +65,6 @@ private:
     _data_pqrst_ data_pqrst;
     QVector<_data_pqrst_> v_data_pqrst;
     QVBoxLayout* vbl;
-
-    QSlider* sliderX0;
-    QSlider* sliderX;
-
-    struct Data {
-        QVector <double> pointsX;
-        QVector <double> pointsY;
-        int data_frec;
-        double data_max;
-        double data_min;
-    } d;
-    QVector <struct Data> data;
-    QVector <double> pointsX, pointsY;
-    QVector <double> pointsXg, pointsYg;
-    int it;
-    QTimer *timer;
-    bool isPlay = false;
-    int valueSlider = 0;
 };
 
 #endif // SERVISE_PLOT_H

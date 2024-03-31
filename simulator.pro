@@ -49,7 +49,6 @@ HEADERS += \
     src/Diograms/Diograms_Data/diograms_data.h \
     src/Diograms/Diograms_Fun/diograms_fun.h \
     src/Diograms/Enum/listdata.h \
-    src/Playback/playback_form.h \
     src/Tratining/Form/tratining_form.h \
     src/Tratining/Servise/servise_plot.h \
     src/Utilities/qcustomplot.h \
@@ -64,7 +63,6 @@ FORMS += \
     src/Control/Question/level2/level2_form.ui \
     src/Control/Question/level3/level3_form.ui \
     src/Control/Form/controlmode_form.ui \
-    src/Playback/playback_form.ui \
     src/Tratining/Form/tratining_form.ui \
     ui/simulator.ui
 SOURCES += \
@@ -82,7 +80,6 @@ SOURCES += \
     src/Diograms/Diograms_Data/diograms_data.cpp \
     src/Diograms/Diograms_Fun/diograms_fun.cpp \
     src/Diograms/Enum/listdata.cpp \
-    src/Playback/playback_form.cpp \
     src/Tratining/Form/tratining_form.cpp \
     src/Tratining/Servise/servise_plot.cpp \
     src/Utilities/qcustomplot.cpp \

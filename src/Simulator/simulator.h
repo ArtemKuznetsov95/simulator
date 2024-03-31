@@ -43,7 +43,6 @@ private:
     ControlMode_Form *m_widgetControl;
     Tratining_Form * m_widgetTraining;
 
-    QString fileName;
     struct Data {
         QVector <double> pointsX;
         QVector <double> pointsY;
@@ -51,33 +50,22 @@ private:
         double data_max;
         double data_min;
     } d;
+
+    ListData::SignalEFS m_currentSignal;
+
+    QTimer *timer;
+    QStandardItemModel* modelDiogramList;
+
+    int it;
+    QString fileName;
     QVector <struct Data> data;
     QVector <double> pointsX, pointsY;
     QVector <double> pointsXg, pointsYg;
-
-    void signal(double frequency, double amplitude);
-
-    void sinusPlot();
-    void pilaPlot();
-    void trapPlot();
-    void parabPlot();
-    void impPlot();
-    void addEMG();
-    void addWhiteNoise();
-    void addSin50Noise();
-    void addSinNoise();
-
     QVector<_data_pqrst> v_data_pqrst;
-    bool noEdit;
-    QTimer *timer;
-    int it;
-    ListData::SignalEFS m_currentSignal;
 
-    bool isTraining = false;
-    QStandardItemModel* modelDiogramList;
+    bool noEdit;
 
 private slots:
-
 
     void show_DiogramEKG_Norm();
     void show_DiogramEMG_Norm();
@@ -87,7 +75,6 @@ private slots:
     void viewPlay(bool);
     void startGen(bool);
     void changeSig();
-
     void changeDataSig(int sig);
     void changeDataEnd(double val);
     void changeDataDur(double val);
@@ -100,32 +87,18 @@ private slots:
     void edit_row();
     void pqrstPlot();
     void playPlot();
-
     void plotX(int);
     void plotX0(int);
-
     void updatePlot();
-
-
     void switchingModesTraining();
     void switchingModesPlayback();
     void switchingModesControl();
-
-
-
-    void setVisionCombobox(bool in);
-    void setRand(double last, double first, int count);
-
     void on_m_pushButton_ecg_clicked();
     void on_m_pushButton_emg_clicked();
     void on_m_pushButton_eeg_clicked();
-
-
     void sl_showPlot_DiogramEKG(ListData::DiogramEKG type);
     void sl_showPlot_DiogramEMG(ListData::DiogramEMG type);
     void sl_showPlot_DiogramEEG(ListData::DiogramEEG type);
-
-
     void show_DiogramEKG_FORM_Norm();
     void show_DiogramEMG_Norm_plot();
     void show_DiogramEEG_Norm_1();
@@ -133,9 +106,7 @@ private slots:
     void show_DiogramEEG_Norm_3();
     void show_DiogramEEG_Norm_4();
     void show_DiogramEEG_Norm_5();
-
-
-
+    void setPlayEditor(bool in);
 };
 
 #endif // SIMULATOR_H

@@ -7,10 +7,6 @@
 class ListData
 {
 public:
-    enum Signal {
-        EFS = 1,
-        Signal1 = 2
-    };
 
     enum SignalEFS {
         EKG = 1,
@@ -55,8 +51,6 @@ public:
         EEG_PATOLOGY4 = 9,
         EEG_PATOLOGY5 = 10,
         EEG_PATOLOGY6 = 11
-
-
     };
 
     enum Noide {
@@ -94,10 +88,6 @@ public:
 
     static QMap<DiogramEEG, QString> getMapDiogramEEG_Norm();
     static QMap<DiogramEEG, QString> getMapDiogramEEG_Patology();
-
-    static QMap<Signal, QString> getMapSignal();
-    static QMap<Noide, QString> getMapNoise();
-
 };
 
 #endif // LISTDATA_H

@@ -12,15 +12,6 @@ Simulator::Simulator(QWidget *parent) :
     ui->setupUi(this);
 
 #ifdef ANDROID
-    ui->pb_1->setMinimumSize(64,64);
-    ui->pb_1->setMaximumSize(64,64);
-
-    ui->pb_2->setMinimumSize(64,64);
-    ui->pb_2->setMaximumSize(64,64);
-
-    ui->pb_3->setMinimumSize(64,64);
-    ui->pb_3->setMaximumSize(64,64);
-
     ui->pb_add->setMinimumSize(64,64);
     ui->pb_add->setMaximumSize(64,64);
 
@@ -44,75 +35,52 @@ Simulator::Simulator(QWidget *parent) :
     ui->dsb_sig_amp->setValue(1);
     ui->dsb_sig_frec->setValue(1);
 
-    //ui->tableWidget->selectRow(0);
-    //ui->tableWidget->setItemDelegateForColumn(1, new ComboBoxDelegate(ui->tableWidget));
     ui->tableWidget->setItemDelegateForColumn(1, new NonEditDelegate());
 
     ui->plot->addGraph();
-//    ui->plot->graph()->setPen(QPen( Qt::red, 3 ));
-//    ui->plot->graph()->setPen(QPen( Qt::blue, 2 ));
-    //    ui->plot->graph()->setBrush(QBrush(QColor(0, 0, 255, 20)));
-
     ui->plot->axisRect()->setupFullAxesBox(true);
-    //    ui->plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-
     ui->plot->xAxis->setRange(0, 1, Qt::AlignLeft);
     ui->plot->xAxis->setLabel(trUtf8("t,с"));
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));
-
-    noEdit=true;
-//    pqrstInit_1();
-    noEdit=false;
-
-    connect(ui->action_open,SIGNAL(triggered()),this,SLOT(openFile()));
-
-    connect(ui->cbNameSig,SIGNAL(currentIndexChanged(int)),this,SLOT(playPlot()));
-    connect(ui->action_view_play,SIGNAL(toggled(bool)),this,SLOT(viewPlay(bool)));
-//    connect(ui->cb_sig,SIGNAL(currentIndexChanged(int)),this,SLOT(changeSig()));
-
-//    connect(ui->m_comboBox_vid,SIGNAL(currentIndexChanged(int)),this,SLOT(changeSig()));
-//    connect(ui->m_comboBox_mod,SIGNAL(currentIndexChanged(int)),this,SLOT(changeSig()));
+    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));    
 
     noEdit=true;
     viewPlay(false);
     noEdit=false;
-    edit_row();
+    edit_row();    
+    timer = new QTimer(this);
+    modelDiogramList = new QStandardItemModel();
+    QActionGroup * actiution_menu = new QActionGroup(this);
+    actiution_menu->addAction(ui->action_playback);
+    actiution_menu->addAction(ui->action_training);
+    actiution_menu->addAction(ui->action_control);
 
+    QButtonGroup* gropButton = new QButtonGroup(this);
+    gropButton->addButton(ui->m_pushButton_eeg);
+    gropButton->addButton(ui->m_pushButton_ecg);
+    gropButton->addButton(ui->m_pushButton_emg);
+
+    connect(ui->action_open,SIGNAL(triggered()),this,SLOT(openFile()));
+    connect(ui->cbNameSig,SIGNAL(currentIndexChanged(int)),this,SLOT(playPlot()));
+    connect(ui->action_view_play,SIGNAL(toggled(bool)),this,SLOT(viewPlay(bool)));
     connect(ui->sliderX,SIGNAL(valueChanged(int)),this,SLOT(plotX(int)));
     connect(ui->sliderX0,SIGNAL(valueChanged(int)),this,SLOT(plotX0(int)));
-
     connect(ui->dsb_sig_frec,SIGNAL(valueChanged(double)),this,SLOT(changeSig()));
     connect(ui->dsb_sig_amp,SIGNAL(valueChanged(double)),this,SLOT(changeSig()));
-
     connect(ui->pb_add,SIGNAL(pressed()),this,SLOT(add_row()));
     connect(ui->pb_del,SIGNAL(pressed()),this,SLOT(del_row()));
     connect(ui->pb_edit,SIGNAL(pressed()),this,SLOT(edit_row()));
-
-
     connect(ui->tableWidget,SIGNAL(currentCellChanged(int,int,int,int)),this,SLOT(changeList(int,int,int,int)));
-
     connect(ui->cb_pqrst,SIGNAL(currentIndexChanged(int)),this,SLOT(changeDataSig(int)));
     connect(ui->dsb_end,SIGNAL(valueChanged(double)),this,SLOT(changeDataEnd(double)));
     connect(ui->dsb_dur,SIGNAL(valueChanged(double)),this,SLOT(changeDataDur(double)));
     connect(ui->dsb_amp,SIGNAL(valueChanged(double)),this,SLOT(changeDataAmp(double)));
     connect(ui->dsb_amp_shift,SIGNAL(valueChanged(double)),this,SLOT(changeDataAmpSh(double)));
     connect(ui->dsb_time_shift,SIGNAL(valueChanged(double)),this,SLOT(changeDataTimeSh(double)));
-
-    connect(ui->action_start,SIGNAL(toggled(bool)),this,SLOT(startGen(bool)));
-    timer = new QTimer(this);
+    connect(ui->action_start,SIGNAL(toggled(bool)),this,SLOT(startGen(bool)));    
     connect(timer, SIGNAL(timeout()), this, SLOT(updatePlot()));
-
-    QActionGroup * actiution_menu = new QActionGroup(this);
-    actiution_menu->addAction(ui->action_playback);
-    actiution_menu->addAction(ui->action_training);
-    actiution_menu->addAction(ui->action_control);
-
     connect(ui->action_playback,SIGNAL(triggered()),this,SLOT(switchingModesPlayback()));
     connect(ui->action_training,SIGNAL(triggered()),this,SLOT(switchingModesTraining()));
     connect(ui->action_control,SIGNAL(triggered()),this,SLOT(switchingModesControl()));
-
-    switchingModesPlayback();
-
     connect(ui->m_listView_diogram, &QListView::clicked, [this](){
         auto index = ui->m_listView_diogram->currentIndex();
         QStandardItemModel* model = static_cast<QStandardItemModel* >(ui->m_listView_diogram->model());
@@ -126,28 +94,14 @@ Simulator::Simulator(QWidget *parent) :
             break;
         case ListData::SignalEFS::EEG:
             sl_showPlot_DiogramEEG(static_cast<ListData::DiogramEEG>(item->data().toInt()));
-
             break;
         }
     });
 
-    modelDiogramList = new QStandardItemModel();
-
-//    ui->widget_sig->setVisible(false);
-
-//
-//
-//    ui->m_stackedWidget->addWidget(m_widgetPlayback);
     ui->m_stackedWidget->addWidget(m_widgetTraining);
     ui->m_stackedWidget->addWidget(m_widgetControl);
 
-//    ui->plot->hide();
-//    ui->widget_gen->hide();
-//    ui->w1->hide();
-
-//    connect(ui->action_start,SIGNAL(toggled(bool)),[this] (bool in) {
-//        m_widgetPlayback->startGen(in);
-//    });
+    switchingModesPlayback();
 }
 
 Simulator::~Simulator()
@@ -305,8 +259,6 @@ void Simulator::viewPlay(bool in) {
         ui->action_start->setText(trUtf8("Генерировать"));
         changeSig();
     }
-
-
 }
 
 void Simulator::changeSig() {
@@ -322,47 +274,17 @@ void Simulator::changeSig() {
     ui->widget_pqrst->setVisible(true);
     ui->widget_sig->setVisible(false);
 
-//    qDebug() << "sig=" << ui->cb_sig->currentIndex();
-//    switch (ui->cb_sig->currentIndex()) {
-//    case 0: {
-//        sinusPlot();
-//        setVisionCombobox(false);
-//        break;
-//    }
-//    case 1: {
-//        pilaPlot();
-//        setVisionCombobox(false);
-//        break;
-//    }
-//    case 2: {
-//        trapPlot();
-//        setVisionCombobox(false);
-//        break;
-//    }
-//    case 3: {
-//        parabPlot();
-//        setVisionCombobox(false);
-//        break;
-//    }
-//    case 4: {
-//        impPlot();
-//        setVisionCombobox(false);
-//        break;
-//    }
-//    case 5: {
-        pqrstPlot();
-//        setVisionCombobox(true);
+    pqrstPlot();
 
-        for (int k = 0; k < pointsY.size(); k++){
-            double amp_i = pointsY.at(k);
-            if (amp_i > amp_max) amp_max = amp_i;
-            if (amp_i < amp_min) amp_min = amp_i;
-            if (!amp_min) amp_min = amp_max;
-            if (!amp_max) amp_max = amp_min;
-        }
+    for (int k = 0; k < pointsY.size(); k++){
+        double amp_i = pointsY.at(k);
+        if (amp_i > amp_max) amp_max = amp_i;
+        if (amp_i < amp_min) amp_min = amp_i;
+        if (!amp_min) amp_min = amp_max;
+        if (!amp_max) amp_max = amp_min;
+    }
 
-        x_visible = v_data_pqrst.last().end;
-
+    x_visible = v_data_pqrst.last().end;
 
     noEdit = true;
     int x_vis = x_visible * 100 + 0.1;
@@ -372,8 +294,6 @@ void Simulator::changeSig() {
     ui->sliderX->setMaximum(x_max);
     ui->sliderX0->setMaximum(x_visible * 100 + 0.1 - ui->sliderX->value());
     noEdit = false;
-
-
 
     double amp_dif = amp_max - amp_min;
     amp_min -= 0.1 * amp_dif;
@@ -423,10 +343,6 @@ void Simulator::edit_row()
     ui->pb_add->setHidden(h);
     ui->pb_del->setHidden(h);
     ui->pb_edit->setChecked(h);
-
-//    ui->pb_1->setHidden(h);
-//    ui->pb_2->setHidden(h);
-//    ui->pb_3->setHidden(h);
 }
 
 void Simulator::changeList(int i, int, int i_b, int)
@@ -542,138 +458,9 @@ void Simulator::changeDataTimeSh(double val)
     changeSig();
 }
 
-void Simulator::sinusPlot()
-{
-    ui->label_plot->setText( QString::fromUtf8("Синус") );
-#ifdef ANDROID
-    const int N = 250;
-#else
-    const int N = 1000;
-#endif
-    double X;
-    double Y;
-    int i = 0.01 * ui->sliderX0->value() * N;
-    int end = 0.01 * (ui->sliderX0->value() + ui->sliderX->value()) * N;
-    double shift = 1.0 / (ui->dsb_sig_frec->value() * 4);
-    while (i <= end) {
-        X = (double)i / N;
-        double w = 2 * M_PI * ui->dsb_sig_frec->value();
-        Y = ui->dsb_sig_amp->value() * (sin(w * (X - shift)) / 2 + 0.5);
-        pointsX.push_back(X);
-        pointsY.push_back(Y);
-        i++;
-    }//while
-}
-
-void Simulator::pilaPlot()
-{
-    ui->label_plot->setText( QString::fromUtf8("Треугольник") );
-#ifdef ANDROID
-    const int N = 250;
-#else
-    const int N = 1000;
-#endif
-    double X;
-    double Y;
-    int i = 0.01 * ui->sliderX0->value() * N;
-    int end = 0.01 * (ui->sliderX0->value() + ui->sliderX->value()) * N;
-    while (i <= end) {
-        X = (double)i / N;
-        double l;
-        Y = ui->dsb_sig_amp->value() * 2 * modf(X * ui->dsb_sig_frec->value(),&l);
-        if (Y > ui->dsb_sig_amp->value())
-            Y = ui->dsb_sig_amp->value() * 2 - Y;
-        pointsX.push_back(X);
-        pointsY.push_back(Y);
-        i++;
-    }//while
-
-}
-
-void Simulator::trapPlot()
-{
-    ui->label_plot->setText( QString::fromUtf8("Трапеция") );
-#ifdef ANDROID
-    const int N = 250;
-#else
-    const int N = 1000;
-#endif
-    double X;
-    double Y;
-    int i = 0.01 * ui->sliderX0->value() * N;
-    int end = 0.01 * (ui->sliderX0->value() + ui->sliderX->value()) * N;
-    while (i <= end) {
-        X = (double)i / N;
-        double l;
-        Y = ui->dsb_sig_amp->value() * 4 * modf(X * ui->dsb_sig_frec->value(),&l);
-        if (Y > ui->dsb_sig_amp->value() * 2)
-            Y = ui->dsb_sig_amp->value() * 4 - Y;
-        if (Y > ui->dsb_sig_amp->value()) Y = ui->dsb_sig_amp->value();
-        pointsX.push_back(X);
-        pointsY.push_back(Y);
-        i++;
-    }//while
-}
-
-void Simulator::parabPlot()
-{
-    ui->label_plot->setText( QString::fromUtf8("Парабола") );
-#ifdef ANDROID
-    const int N = 250;
-#else
-    const int N = 1000;
-#endif
-    double X;
-    double Y;
-    int i = 0.01 * ui->sliderX0->value() * N;
-    int end = 0.01 * (ui->sliderX0->value() + ui->sliderX->value()) * N;
-    while (i <= end) {
-        X = (double)i / N;
-        Y = ui->dsb_sig_amp->value() * sin(M_PI * X * ui->dsb_sig_frec->value());
-        if (Y < 0) Y *= -1;
-        pointsX.push_back(X);
-        pointsY.push_back(Y);
-        i++;
-    }//while
-}
-
-void Simulator::impPlot()
-{
-    ui->label_plot->setText( QString::fromUtf8("Импульс") );
-#ifdef ANDROID
-    const int N = 250;
-#else
-    const int N = 1000;
-#endif
-    double X;
-    double Y;
-    int i = 0.01 * ui->sliderX0->value() * N;
-    int end = 0.01 * (ui->sliderX0->value() + ui->sliderX->value()) * N;
-    int t = N / ui->dsb_sig_frec->value();
-    while (i <= end) {
-        X = (double)i / N;
-        if (!(i % t)) Y = ui->dsb_sig_amp->value();
-        else Y = 0;
-        pointsX.push_back(X);
-        pointsY.push_back(Y);
-        i++;
-    }//while
-}
-
-void Simulator::addEMG()
-{
-    int N = pointsY.size();
-    double Y;
-    for (int k = 0; k < N; k++)
-    {
-        Y = ui->dsb_sig_amp->value() / 20 * 2 * ((rand()/((double)RAND_MAX)) - 0.5);
-        pointsY[k] = pointsY.at(k) + Y;
-    }
-}
 
 void Simulator::pqrstPlot()
 {
-    //    ui->label_plot->setText( QString::fromUtf8("PQRST") );
 #ifdef ANDROID
     const int N = 250;
 #else
@@ -732,8 +519,6 @@ void Simulator::pqrstPlot()
                 double BC = (X - X1) * tan(v_data_pqrst[k].amp);
 
                 Y = Y1 + BC;
-//                X = v_data_pqrst[k].end ;
-//                i = end;
                 break;
             }
             }//switch
@@ -745,55 +530,12 @@ void Simulator::pqrstPlot()
     }
 }
 
-void Simulator::addWhiteNoise()
-{
-    int N = pointsY.size();
-    double Y;
-    for (int k = 0; k < N; k++)
-    {
-        Y = ui->dsb_sig_amp->value() / 20 * 2 * ((rand()/((double)RAND_MAX)) - 0.5);
-        pointsY[k] = pointsY.at(k) + Y;
-    }
-}
-
-void Simulator::addSin50Noise()
-{
-    int N = pointsY.size();
-    double X;
-    double Y1,Y2;
-    double delta = 1.5 * M_PI;
-    for (int k = 0; k < N; k++)
-    {
-        X = (double)(k * 0.01 * ui->sliderX->value()) / (N - 1) + 0.01 * ui->sliderX0->value();
-        Y1 = ui->dsb_sig_amp->value() / 20 * (sin(2 * M_PI * X * 50 + delta) / 2 + 0.5);
-        Y2 = 0;//ui->dsb_sig_amp->value() / 10 * (sin(M_2PI * X * 60 + delta) / 2 + 0.5);
-        pointsY[k] = pointsY.at(k) + Y1 + Y2;
-    }
-}
-
-void Simulator::addSinNoise()
-{
-    int N = pointsY.size();
-    double X;
-    double Y;
-    double delta = 1.5 * M_PI;
-    double ch = (double)(1 / (0.01 * (ui->sliderX->value()) + ui->sliderX0->value()));
-    for (int k = 0; k < N; k++)
-    {
-        X = (double)(k * 0.01 * ui->sliderX->value()) / (N - 1) + 0.01 * ui->sliderX0->value();
-        Y = ui->dsb_sig_amp->value() / 10 * (sin(2 * M_PI * X * ch + delta) / 2 + 0.5);
-        pointsY[k] = pointsY.at(k) + Y;
-    }
-}
-
-
 void Simulator::playPlot()
 {
     qDebug() << "playPlot()";
     int i = ui->cbNameSig->currentIndex();
     if (i < 0 || noEdit) return;
 
-    ui->label_plot->setText( "" );
     double x_visible = data[i].pointsX.count() / data[i].data_frec;
     ui->sliderX->setMaximum(x_visible * 100 + 0.1 - ui->sliderX0->value());
     ui->sliderX0->setMaximum(x_visible * 100 + 0.1 - ui->sliderX->value());
@@ -836,8 +578,6 @@ void Simulator::plotX0(int in)
 
 void Simulator::startGen(bool in)
 {
-
-
     ui->widget_gen->setDisabled(in);
     ui->sliderX0->setDisabled(in);
     ui->sliderX->setDisabled(in);
@@ -893,58 +633,43 @@ void Simulator::updatePlot()
 
 void Simulator::switchingModesTraining()
 {
-    isTraining = true;
+    if(m_widgetControl->getStart()) {
+        ui->m_widget_play->hide();
+        ui->m_stackedWidget->show();
+        ui->m_stackedWidget->setCurrentIndex(0);
 
-    ui->m_widget_play->hide();
-   ui->m_stackedWidget->setCurrentIndex(0);
+        this->setWindowTitle(QString("Симулятор. Режим: %1").arg(ui->action_training->text()));
+
+        setPlayEditor(false);
+    } else {
+        ui->action_control->setChecked(true);
+    }
 }
 
 void Simulator::switchingModesPlayback()
 {
-    isTraining = false;
+    if(m_widgetControl->getStart()) {
+        ui->m_widget_play->show();
+        ui->m_stackedWidget->hide();
+        ui->m_pushButton_ecg->click();
 
-    ui->m_widget_play->show();
-    ui->m_stackedWidget->hide();
+        this->setWindowTitle(QString("Симулятор. Режим: %1").arg(ui->action_playback->text()));
+        setPlayEditor(true);
+    }
+    else {
+            ui->action_control->setChecked(true);
+        }
 }
 
 void Simulator::switchingModesControl()
 {
-
     ui->m_widget_play->hide();
+    ui->m_stackedWidget->show();
     ui->m_stackedWidget->setCurrentIndex(1);
-}
 
-void Simulator::setVisionCombobox(bool in)
-{
-//    if(isTraining){
-//    ui->label_mod->setVisible(in);
-//    ui->label_vid->setVisible(in);
-//    ui->m_comboBox_mod->setVisible(in);
-//    ui->m_comboBox_vid->setVisible(in);
-//    if(!in)
-//        ui->m_comboBox_vid->setCurrentIndex(0);
-//    }
+    this->setWindowTitle(QString("Симулятор. Режим: %1").arg(ui->action_control->text()));
+    setPlayEditor(false);
 }
-
-void Simulator::setRand(double last, double first, int count)
-{
-    const int N = 1000;
-    double X;
-    double Y;
-    int i = 0.01 * ui->sliderX0->value() * N;
-    int end = 0.01 * (ui->sliderX0->value() + ui->sliderX->value()) * N;
-    while (i <= end) {
-        X = (double)i / N;
-        double l;
-        Y = ui->dsb_sig_amp->value() * 2 * modf(X * ui->dsb_sig_frec->value(),&l);
-        if (Y > ui->dsb_sig_amp->value())
-            Y = ui->dsb_sig_amp->value() * 2 - Y;
-        pointsX.push_back(X);
-        pointsY.push_back(Y);
-        i++;
-    }//while
-}
-
 
 void Simulator::on_m_pushButton_ecg_clicked()
 {
@@ -1007,13 +732,13 @@ void Simulator::show_DiogramEKG_FORM_Norm()
     data_pqrst.amp = -9.43;
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
+    data_pqrst.name = "QR интервал";
     data_pqrst.sig = 6;
     data_pqrst.end = 0.33;
     data_pqrst.amp = 78.62;
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "R зубец";
+    data_pqrst.name = "RS интервал";
     data_pqrst.sig = 6;
     data_pqrst.end = 0.36;
     data_pqrst.amp = -9.51;
@@ -1048,25 +773,25 @@ void Simulator::show_DiogramEKG_FORM_Norm()
     data_pqrst.amp_shift = 0.29;
     v_data_pqrst.push_back(data_pqrst);
 
-        bool in = noEdit;
-        noEdit = true;
-        ui->dsb_sig_amp->setValue(1);
-        int k = v_data_pqrst.size();
-        ui->tableWidget->setRowCount(k);
+    bool in = noEdit;
+    noEdit = true;
+    ui->dsb_sig_amp->setValue(1);
+    int k = v_data_pqrst.size();
+    ui->tableWidget->setRowCount(k);
 
-        for (int i=0; i<k; i++) {
-            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-        }
+    for (int i=0; i<k; i++) {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+    }
 
-        ui->tableWidget->selectRow(0);
+    ui->tableWidget->selectRow(0);
 
-        int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-        ui->sliderX->setMaximum(x_max);
-        ui->sliderX->setValue(x_max);
-        if (!in) noEdit = false;
-        if (ui->action_view_play->isChecked()) playPlot();
-        else changeSig();
+    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    if (!in) noEdit = false;
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
 }
 
 void Simulator::show_DiogramEMG_Norm_plot()
@@ -1090,7 +815,7 @@ void Simulator::show_DiogramEMG_Norm_plot()
         }
 
         double x = rand() % (end - start +1) + start;
-        data_pqrst.name = QString("Отрезок%1").arg(QString::number(i));
+        data_pqrst.name = QString("Интервал-%1").arg(QString::number(i));
         data_pqrst.sig = 5;
         data_pqrst.end = (double)i/1000;
 
@@ -1104,25 +829,25 @@ void Simulator::show_DiogramEMG_Norm_plot()
         v_data_pqrst.push_back(data_pqrst);
     }
 
-        bool in = noEdit;
-        noEdit = true;
-        ui->dsb_sig_amp->setValue(1);
-        int k = v_data_pqrst.size();
-        ui->tableWidget->setRowCount(k);
+    bool in = noEdit;
+    noEdit = true;
+    ui->dsb_sig_amp->setValue(1);
+    int k = v_data_pqrst.size();
+    ui->tableWidget->setRowCount(k);
 
-        for (int i=0; i<k; i++) {
-            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-        }
+    for (int i=0; i<k; i++) {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+    }
 
-        ui->tableWidget->selectRow(0);
+    ui->tableWidget->selectRow(0);
 
-        int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-        ui->sliderX->setMaximum(x_max);
-        ui->sliderX->setValue(x_max);
-        if (!in) noEdit = false;
-        if (ui->action_view_play->isChecked()) playPlot();
-        else changeSig();
+    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    if (!in) noEdit = false;
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
 }
 
 void Simulator::show_DiogramEEG_Norm_1()
@@ -1130,7 +855,7 @@ void Simulator::show_DiogramEEG_Norm_1()
     v_data_pqrst.clear();
     _data_pqrst data_pqrst;
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.16;
     data_pqrst.dur = 0.08;
@@ -1139,7 +864,7 @@ void Simulator::show_DiogramEEG_Norm_1()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.3;
     data_pqrst.dur = 0.14;
@@ -1148,7 +873,7 @@ void Simulator::show_DiogramEEG_Norm_1()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.45;
     data_pqrst.dur = 0.1;
@@ -1157,7 +882,7 @@ void Simulator::show_DiogramEEG_Norm_1()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.59;
     data_pqrst.dur = 0.14;
@@ -1166,7 +891,7 @@ void Simulator::show_DiogramEEG_Norm_1()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.65;
     data_pqrst.dur = 0.04;
@@ -1175,7 +900,7 @@ void Simulator::show_DiogramEEG_Norm_1()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.8;
     data_pqrst.dur = 0.1;
@@ -1184,7 +909,7 @@ void Simulator::show_DiogramEEG_Norm_1()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.9;
     data_pqrst.dur = 0.1;
@@ -1193,7 +918,7 @@ void Simulator::show_DiogramEEG_Norm_1()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 1;
     data_pqrst.dur = 0.1;
@@ -1202,25 +927,25 @@ void Simulator::show_DiogramEEG_Norm_1()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-        bool in = noEdit;
-        noEdit = true;
-        ui->dsb_sig_amp->setValue(1);
-        int k = v_data_pqrst.size();
-        ui->tableWidget->setRowCount(k);
+    bool in = noEdit;
+    noEdit = true;
+    ui->dsb_sig_amp->setValue(1);
+    int k = v_data_pqrst.size();
+    ui->tableWidget->setRowCount(k);
 
-        for (int i=0; i<k; i++) {
-            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
-            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
-        }
+    for (int i=0; i<k; i++) {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(v_data_pqrst.at(i).name));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(ui->cb_pqrst->itemText(v_data_pqrst.at(i).sig)));
+    }
 
-        ui->tableWidget->selectRow(0);
+    ui->tableWidget->selectRow(0);
 
-        int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
-        ui->sliderX->setMaximum(x_max);
-        ui->sliderX->setValue(x_max);
-        if (!in) noEdit = false;
-        if (ui->action_view_play->isChecked()) playPlot();
-        else changeSig();
+    int x_max = v_data_pqrst.at(k-1).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    if (!in) noEdit = false;
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
 }
 
 void Simulator::show_DiogramEEG_Norm_2()
@@ -1228,7 +953,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     v_data_pqrst.clear();
     _data_pqrst data_pqrst;
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.02;
     data_pqrst.dur = 0.02;
@@ -1237,7 +962,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.04;
     data_pqrst.dur = 0.04;
@@ -1246,7 +971,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.1;
     data_pqrst.dur = 0.06;
@@ -1255,79 +980,79 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.12;
     data_pqrst.amp = 17.12;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.13;
     data_pqrst.amp = 8.30;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.14;
     data_pqrst.amp = 13.48;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.15;
     data_pqrst.amp = -17.20;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.16;
     data_pqrst.amp = 14.04;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.17;
     data_pqrst.amp = -17.18;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.18;
     data_pqrst.amp = 32.92;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.19;
     data_pqrst.amp = -32.94;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.21;
     data_pqrst.amp = 14.02;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.22;
     data_pqrst.amp = 8.43;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.23;
     data_pqrst.amp = 16.82;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 6;
     data_pqrst.end = 0.24;
     data_pqrst.amp = -1.43;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.28;
     data_pqrst.dur = 0.04;
@@ -1336,7 +1061,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.32;
     data_pqrst.dur = 0.04;
@@ -1345,7 +1070,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.4;
     data_pqrst.dur = 0.04;
@@ -1354,7 +1079,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.44;
     data_pqrst.dur = 0.02;
@@ -1363,7 +1088,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.48;
     data_pqrst.dur = 0.04;
@@ -1372,7 +1097,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.54;
     data_pqrst.dur = 0.04;
@@ -1381,7 +1106,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.59;
     data_pqrst.dur = 0.02;
@@ -1390,7 +1115,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.65;
     data_pqrst.dur = 0.03;
@@ -1399,7 +1124,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.68;
     data_pqrst.dur = 0.03;
@@ -1408,7 +1133,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.72;
     data_pqrst.dur = 0.03;
@@ -1418,7 +1143,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     v_data_pqrst.push_back(data_pqrst);
 
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.76;
     data_pqrst.dur = 0.04;
@@ -1427,7 +1152,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.81;
     data_pqrst.dur = 0.03;
@@ -1437,7 +1162,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     v_data_pqrst.push_back(data_pqrst);
 
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.87;
     data_pqrst.dur = 0.04;
@@ -1447,7 +1172,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     v_data_pqrst.push_back(data_pqrst);
 
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.915;
     data_pqrst.dur = 0.03;
@@ -1457,7 +1182,7 @@ void Simulator::show_DiogramEEG_Norm_2()
     v_data_pqrst.push_back(data_pqrst);
 
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.965;
     data_pqrst.dur = 0.03;
@@ -1466,13 +1191,13 @@ void Simulator::show_DiogramEEG_Norm_2()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "Q зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 5;
     data_pqrst.end = 0.985;
     data_pqrst.amp = -5;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 1;
     data_pqrst.dur = 0.02;
@@ -1507,7 +1232,7 @@ void Simulator::show_DiogramEEG_Norm_3()
     v_data_pqrst.clear();
     _data_pqrst data_pqrst;
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.1;
     data_pqrst.dur = 0.2;
@@ -1516,7 +1241,7 @@ void Simulator::show_DiogramEEG_Norm_3()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.25;
     data_pqrst.dur = 0.1;
@@ -1525,7 +1250,7 @@ void Simulator::show_DiogramEEG_Norm_3()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.35;
     data_pqrst.dur = 0.2;
@@ -1534,7 +1259,7 @@ void Simulator::show_DiogramEEG_Norm_3()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.45;
     data_pqrst.dur = 0.1;
@@ -1543,7 +1268,7 @@ void Simulator::show_DiogramEEG_Norm_3()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.65;
     data_pqrst.dur = 0.2;
@@ -1552,7 +1277,7 @@ void Simulator::show_DiogramEEG_Norm_3()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 0.88;
     data_pqrst.dur = 0.15;
@@ -1561,7 +1286,7 @@ void Simulator::show_DiogramEEG_Norm_3()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 1.06;
     data_pqrst.dur = 0.2;
@@ -1604,7 +1329,7 @@ void Simulator::show_DiogramEEG_Norm_4()
     srand(time(NULL));
     for(int i = 0; i <= count; ++i) {
         double x = rand() % (end - start +1) + start;
-        data_pqrst.name = QString("Отрезок%1").arg(QString::number(i));
+        data_pqrst.name = QString("Интервал-%1").arg(QString::number(i));
         data_pqrst.sig = 5;
         data_pqrst.end = (double)i/1000;
 
@@ -1644,7 +1369,7 @@ void Simulator::show_DiogramEEG_Norm_5()
     v_data_pqrst.clear();
     _data_pqrst data_pqrst;
 
-    data_pqrst.name = "P1 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 1.85;
     data_pqrst.dur = 3.8;
@@ -1653,7 +1378,7 @@ void Simulator::show_DiogramEEG_Norm_5()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P1 интервал";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 2.2;
     data_pqrst.dur = 0.84;
@@ -1662,8 +1387,7 @@ void Simulator::show_DiogramEEG_Norm_5()
     data_pqrst.amp_shift = 0.2;
     v_data_pqrst.push_back(data_pqrst);
 
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P2 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 2.8;
     data_pqrst.dur = 2;
@@ -1672,7 +1396,7 @@ void Simulator::show_DiogramEEG_Norm_5()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P2 интервал";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 3.2;
     data_pqrst.dur = 0.88;
@@ -1681,8 +1405,7 @@ void Simulator::show_DiogramEEG_Norm_5()
     data_pqrst.amp_shift = 0.2;
     v_data_pqrst.push_back(data_pqrst);
 
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P3 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 4.75;
     data_pqrst.dur = 3.8;
@@ -1691,7 +1414,7 @@ void Simulator::show_DiogramEEG_Norm_5()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P3 интервал";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 5.3;
     data_pqrst.dur = 0.9;
@@ -1700,8 +1423,7 @@ void Simulator::show_DiogramEEG_Norm_5()
     data_pqrst.amp_shift = 0.24;
     v_data_pqrst.push_back(data_pqrst);
 
-    v_data_pqrst.push_back(data_pqrst);
-    data_pqrst.name = "P4 зубец";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 6.85;
     data_pqrst.dur = 3.8;
@@ -1710,7 +1432,7 @@ void Simulator::show_DiogramEEG_Norm_5()
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
 
-    data_pqrst.name = "P4 интервал";
+    data_pqrst.name = QString("Зубец - %1").arg(QString::number(v_data_pqrst.count()));
     data_pqrst.sig = 1;
     data_pqrst.end = 7.23;
     data_pqrst.dur = 0.9;
@@ -1740,12 +1462,24 @@ void Simulator::show_DiogramEEG_Norm_5()
     else changeSig();
 }
 
+void Simulator::setPlayEditor(bool in)
+{
+    if(ui->action_start->isChecked())
+        ui->action_start->setChecked(in);
+    ui->action_start->setEnabled(in);
+    ui->action_open->setEnabled(in);
+    ui->action_view_gen->setEnabled(in);
+    ui->action_view_play->setEnabled(in);
+}
+
 
 void Simulator::sl_showPlot_DiogramEKG(ListData::DiogramEKG type)
 {
     switch (type) {
     case ListData::EKG_NORM_2:
         show_DiogramEKG_FORM_Norm();
+        break;
+    default:
         break;
     }
 }
@@ -1755,6 +1489,8 @@ void Simulator::sl_showPlot_DiogramEMG(ListData::DiogramEMG type)
     switch (type) {
     case ListData::EMG_NORM:
         show_DiogramEMG_Norm_plot();
+        break;
+    default:
         break;
     }
 }
@@ -1777,24 +1513,8 @@ void Simulator::sl_showPlot_DiogramEEG(ListData::DiogramEEG type)
     case ListData::EEG_NORM_5:
         show_DiogramEEG_Norm_5();
         break;
-//    case ListData::EEG_PATOLOGY1:
-//        show_DiogramEEG_Patology1();
-//        break;
-//    case ListData::EEG_PATOLOGY2:
-//        show_DiogramEEG_Patology2();
-//        break;
-//    case ListData::EEG_PATOLOGY3:
-//        show_DiogramEEG_Patology3();
-//        break;
-//    case ListData::EEG_PATOLOGY4:
-//        show_DiogramEEG_Patology4();
-//        break;
-//    case ListData::EEG_PATOLOGY5:
-//        show_DiogramEEG_Patology5();
-//        break;
-//    case ListData::EEG_PATOLOGY6:
-//        show_DiogramEEG_Patology6();
-//        break;
+    default:
+        break;
     }
 }
 

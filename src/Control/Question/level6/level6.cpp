@@ -39,6 +39,8 @@ void level6::createPlot()
     v_data_pqrst.clear();
     v_data_pqrst = Diograms_Data::getDataECGPathologies5();
     diograms_Fun::fun_control(widget_plot, v_data_pqrst);
+    widget_plot->xAxis->setLabel(trUtf8("t,с"));
+    widget_plot->yAxis->setLabel(trUtf8("U,мВ"));
 }
 
 void level6::createAnswer()

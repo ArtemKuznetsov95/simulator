@@ -11,7 +11,6 @@ public:
 
     static void fun_control(QCustomPlot* customplot, QVector<_data_pqrst_> data_pqrst);
     static void fun_traning(QCustomPlot* customplot, QVector<_data_pqrst_> data_pqrst);
-    static void fun_play(QCustomPlot* customplot, QVector<_data_pqrst_> data_pqrst, QVector<double> pointsX, QVector<double> pointsY);
 
     static void pqrstPlot(QVector<_data_pqrst_> v_data_pqrst, QVector<double> *pointsX, QVector<double> *pointsY);
 

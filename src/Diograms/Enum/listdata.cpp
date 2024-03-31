@@ -74,35 +74,12 @@ QMap<ListData::DiogramEEG, QString> ListData::getMapDiogramEEG_Norm()
 QMap<ListData::DiogramEEG, QString> ListData::getMapDiogramEEG_Patology()
 {
     QMap<DiogramEEG, QString> map;
-    map.insert(EEG_PATOLOGY1, "Гамма-ритм. Спайки");
-    map.insert(EEG_PATOLOGY2, "Гамма-ритм. Острые волны");
-    map.insert(EEG_PATOLOGY3, "Гамма-ритм. Острые волны в полосе");
-    map.insert(EEG_PATOLOGY4, "Гамма-ритм. Срайки-волна");
-    map.insert(EEG_PATOLOGY5, "Гамма-ритм. Множественные спайки-волна");
-    map.insert(EEG_PATOLOGY6, "Гамма-ритм. Острая волна-медленная волна");
+    map.insert(EEG_PATOLOGY1, "Спайки");
+    map.insert(EEG_PATOLOGY2, "Острые волны");
+    map.insert(EEG_PATOLOGY3, "Острые волны в полосе");
+    map.insert(EEG_PATOLOGY4, "Срайки-волна");
+    map.insert(EEG_PATOLOGY5, "Множественные спайки-волна");
+    map.insert(EEG_PATOLOGY6, "Острая волна-медленная волна");
     return map;
 }
 
-QMap<ListData::Signal, QString> ListData::getMapSignal()
-{
-    QMap<Signal, QString> map;
-    map.insert(EFS, "ЭФС");
-    map.insert(Signal1, "Др. сигнал");
-
-    return map;
-}
-
-QMap<ListData::Noide, QString> ListData::getMapNoise()
-{
-    QMap<Noide, QString> map;
-    map.insert(NO_TYPE, "Нет");
-    map.insert(TYPE_1, "Белый шум (БШ)");
-    map.insert(TYPE_2, "Сетевая помеха (СП)");
-    map.insert(TYPE_3, "Дрейф (Д)");
-    map.insert(TYPE_4, "БШ+СП");
-    map.insert(TYPE_5, "БШ+Д");
-    map.insert(TYPE_6, "СП+Д");
-    map.insert(TYPE_7, "БШ+СП+Д");
-
-    return map;
-}

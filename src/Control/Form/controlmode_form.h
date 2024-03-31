@@ -20,6 +20,9 @@ public:
 
     void initRules();
 
+public slots:
+    bool getStart();
+
 private slots:
     void initTest();
     void initResults();
@@ -37,6 +40,8 @@ private:
     int n_countPassed = 1;
     int m_countAnswers = 0;
     int m_countBall = 0;
+
+    bool isStart = false;
 };
 
 #endif // CONTROLMODE_FORM_H

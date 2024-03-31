@@ -36,18 +36,14 @@ public:
     void show_DiogramEEG_Patology();
 
 public slots:
-
-
-    void currentSignalEFS(ListData::Signal type);
     void sl_selectDirection();
     void sl_currentEKG();
     void sl_currentEMG();
     void sl_currentEEG();
 
-
-    void sl_curentDiogramEKG(ListData::Mode mode, ListData::Vid vid, ListData::Noide noide);
-    void sl_curentDiogramEMG(ListData::Vid vid, ListData::Noide noide);
-    void sl_curentDiogramEEG(ListData::Vid vid, ListData::Noide noide);
+    void sl_curentDiogramEKG(ListData::Mode mode, ListData::Vid vid);
+    void sl_curentDiogramEMG(ListData::Vid vid);
+    void sl_curentDiogramEEG(ListData::Vid vid);
 
 private:
     Ui::Tratining_Form *ui;

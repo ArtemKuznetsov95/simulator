@@ -1823,7 +1823,6 @@ QVector<_data_pqrst_> Diograms_Data::getDataEEGPathologies1()
     data_pqrst.amp_shift = 0.24;
     v_data_pqrst.push_back(data_pqrst);
 
-    v_data_pqrst.push_back(data_pqrst);
     data_pqrst.name = "P4 зубец";
     data_pqrst.sig = 1;
     data_pqrst.end = 6.85;
@@ -2285,6 +2284,7 @@ QVector<_data_pqrst_> Diograms_Data::getDataEEGPathologies_6()
     data_pqrst.amp = 0;
     v_data_pqrst.push_back(data_pqrst);
 
+    createImpulse(&v_data_pqrst, 1, 5);
 
     return v_data_pqrst;
 }

@@ -4,7 +4,6 @@
 Tratining_Form::Tratining_Form(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Tratining_Form),
-//    m_plot(new Servise_plot),
     modelDiogramList(new QStandardItemModel)
 
 {
@@ -12,9 +11,6 @@ Tratining_Form::Tratining_Form(QWidget *parent) :
 
     m_plot = new Servise_plot(this);
     ui->widget->layout()->addWidget(m_plot);
-
-    showListSignal();
-    showListNoide();
 
     QButtonGroup* gropButton = new QButtonGroup(this);
     gropButton->addButton(ui->m_pushButton_eeg);
@@ -29,10 +25,6 @@ Tratining_Form::Tratining_Form(QWidget *parent) :
     gropRadioButtonVid->addButton(ui->m_radioButton_norm);
     gropRadioButtonVid->addButton(ui->m_radioButton_pathology);
 
-    connect(ui->m_comboBox_signal, &QComboBox::currentTextChanged, [this] () {
-      auto index = ui->m_comboBox_signal->currentData().toInt();
-      this->currentSignalEFS(static_cast<ListData::Signal>(index));
-    });
     connect(ui->m_pushButton_ekg, &QPushButton::clicked, [this] () {
         m_currentSignal = ListData::SignalEFS::EKG;
         ui->m_groupBox_mode->setVisible(true);
@@ -55,9 +47,6 @@ Tratining_Form::Tratining_Form(QWidget *parent) :
     connect(ui->m_radioButton_form, &QRadioButton::clicked, this, &Tratining_Form::sl_selectDirection);
     connect(ui->m_radioButton_norm, &QRadioButton::clicked, this, &Tratining_Form::sl_selectDirection);
     connect(ui->m_radioButton_pathology, &QRadioButton::clicked, this, &Tratining_Form::sl_selectDirection);
-
-    ui->groupBox->setVisible(false);
-    ui->m_comboBox_signal->setCurrentIndex(0);
 
     ui->m_listView_diogram->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->m_listView_diogram->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -86,30 +75,6 @@ Tratining_Form::Tratining_Form(QWidget *parent) :
 Tratining_Form::~Tratining_Form()
 {
     delete ui;
-}
-
-void Tratining_Form::showListSignal()
-{
-    ui->m_comboBox_signal->clear();
-
-    auto map = ListData::getMapSignal();
-    QMap<ListData::Signal, QString>::iterator it;
-
-    for(it = map.begin(); it != map.end(); it++) {
-        ui->m_comboBox_signal->addItem(it.value(), it.key());
-    }
-}
-
-void Tratining_Form::showListNoide()
-{
-    ui->m_comboBox_noise->clear();
-
-    auto map = ListData::getMapNoise();
-    QMap<ListData::Noide, QString>::iterator it;
-
-    for(it = map.begin(); it != map.end(); it++) {
-        ui->m_comboBox_noise->addItem(it.value(), it.key());
-    }
 }
 
 void Tratining_Form::show_DiogramEKG_BEAT_Norm()
@@ -251,21 +216,6 @@ void Tratining_Form::show_DiogramEEG_Patology()
 }
 
 
-void Tratining_Form::currentSignalEFS(ListData::Signal type)
-{
-    switch (type) {
-    case ListData::EFS:
-        ui->m_widget_EFS->show();
-        ui->m_pushButton_ekg->clicked(true);
-        ui->m_pushButton_ekg->click();
-
-        break;
-    default:
-        ui->m_widget_EFS->hide();
-        break;
-    }
-}
-
 void Tratining_Form::sl_selectDirection()
 {
     switch(m_currentSignal) {
@@ -282,8 +232,7 @@ void Tratining_Form::sl_selectDirection()
 void Tratining_Form::sl_currentEKG()
 {
     ListData::Mode mode =  ListData::Mode::BEAT;
-    ListData::Vid vid = ListData::Vid::NORM;
-    ListData::Noide noide = static_cast<ListData::Noide>(ui->m_comboBox_noise->currentData().toInt());
+    ListData::Vid vid = ListData::Vid::NORM;   
 
     if(ui->m_radioButton_beat->isChecked()) {
         mode =  ListData::Mode::BEAT;
@@ -296,14 +245,12 @@ void Tratining_Form::sl_currentEKG()
         vid = ListData::Vid::PATOLOGY;
 
 
-    sl_curentDiogramEKG(mode, vid, noide);
+    sl_curentDiogramEKG(mode, vid);
 }
 
 void Tratining_Form::sl_currentEMG()
 {
     ListData::Vid vid = ListData::Vid::NORM;
-    ListData::Noide noide = static_cast<ListData::Noide>(ui->m_comboBox_noise->currentData().toInt());
-
 
     if(ui->m_radioButton_norm->isChecked())
         vid = ListData::Vid::NORM;
@@ -311,25 +258,22 @@ void Tratining_Form::sl_currentEMG()
         vid = ListData::Vid::PATOLOGY;
 
 
-    sl_curentDiogramEMG(vid, noide);
+    sl_curentDiogramEMG(vid);
 }
 
 void Tratining_Form::sl_currentEEG()
 {
     ListData::Vid vid = ListData::Vid::NORM;
-    ListData::Noide noide = static_cast<ListData::Noide>(ui->m_comboBox_noise->currentData().toInt());
-
 
     if(ui->m_radioButton_norm->isChecked())
         vid = ListData::Vid::NORM;
     else
         vid = ListData::Vid::PATOLOGY;
 
-
-    sl_curentDiogramEEG(vid, noide);
+    sl_curentDiogramEEG(vid);
 }
 
-void Tratining_Form::sl_curentDiogramEKG(ListData::Mode mode, ListData::Vid vid, ListData::Noide noide)
+void Tratining_Form::sl_curentDiogramEKG(ListData::Mode mode, ListData::Vid vid)
 {
     switch (mode) {
     case ListData::Mode::BEAT:
@@ -349,7 +293,7 @@ void Tratining_Form::sl_curentDiogramEKG(ListData::Mode mode, ListData::Vid vid,
 
 }
 
-void Tratining_Form::sl_curentDiogramEMG(ListData::Vid vid, ListData::Noide noide)
+void Tratining_Form::sl_curentDiogramEMG(ListData::Vid vid)
 {
     switch (vid) {
     case ListData::Vid::NORM:       show_DiogramEMG_Norm();        break;
@@ -357,7 +301,7 @@ void Tratining_Form::sl_curentDiogramEMG(ListData::Vid vid, ListData::Noide noid
     }
 }
 
-void Tratining_Form::sl_curentDiogramEEG(ListData::Vid vid, ListData::Noide noide)
+void Tratining_Form::sl_curentDiogramEEG(ListData::Vid vid)
 {
     switch (vid) {
     case ListData::Vid::NORM:       show_DiogramEEG_Norm();        break;

@@ -36,6 +36,18 @@ void ControlMode_Form::initRules()
     ui->m_label->setText(pules);
 }
 
+bool ControlMode_Form::getStart()
+{
+    if(isStart) {
+        auto result = QMessageBox::warning(this, "Предупреждение!", "Вы хотите завершить тестирования?", QMessageBox::Yes, QMessageBox::No);
+        if(result == QMessageBox::No)
+            return false;
+    }
+    isStart = false;
+    initTest();
+    return true;
+}
+
 void ControlMode_Form::initTest()
 {
     //TODO начало теста
@@ -47,6 +59,7 @@ void ControlMode_Form::initTest()
     m_countBall = 0;
     n_countPassed = 1;
     initRules();
+    isStart = false;
 }
 
 void ControlMode_Form::initResults()
@@ -72,6 +85,8 @@ void ControlMode_Form::initResults()
                                         QString::number(estimation));
 
     ui->m_label_result->setText(result);
+
+    isStart = false;
 }
 
 void ControlMode_Form::on_m_pushButton_start_clicked()
@@ -84,6 +99,8 @@ void ControlMode_Form::on_m_pushButton_start_clicked()
     m_countQuestion = m_questionPattern->getWidget();
     ui->label->setText(QString("%1/%2").arg(QString::number(n_countPassed),
                                             QString::number(m_countQuestion)));
+
+    isStart = true;
 }
 
 

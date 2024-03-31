@@ -110,29 +110,6 @@ void diograms_Fun::fun_traning(QCustomPlot *customplot, QVector<_data_pqrst_> da
     customplot->replot();
 }
 
-void diograms_Fun::fun_play(QCustomPlot *customplot, QVector<_data_pqrst_> data_pqrst, QVector <double> pointsX, QVector <double> pointsY)
-{
-    pqrstPlot(data_pqrst, &pointsX, &pointsY);
-
-    double amp_min = 0;
-    double amp_max = 0.1;
-    for (int k = 0; k < pointsY.size(); k++){
-        double amp_i = pointsY.at(k);
-        if (amp_i > amp_max) amp_max = amp_i;
-        if (amp_i < amp_min) amp_min = amp_i;
-        if (!amp_min) amp_min = amp_max;
-        if (!amp_max) amp_max = amp_min;
-    }
-    double amp_dif = amp_max - amp_min;
-    amp_min -= 0.1 * amp_dif;
-    amp_dif *= 1.2;
-    customplot->yAxis->setRange(amp_min, amp_dif, Qt::AlignLeft);
-    customplot->xAxis->setRange(0, data_pqrst.last().end, Qt::AlignLeft);
-
-    customplot->graph(0)->setData(pointsX, pointsY);
-    customplot->replot();
-}
-
 void diograms_Fun::pqrstPlot(QVector<_data_pqrst_> v_data_pqrst, QVector <double>* pointsX, QVector <double>* pointsY)
 {
 #ifdef ANDROID
