@@ -46,9 +46,9 @@ void level4::createPlot()
 void level4::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "признаков инфаркта миокарда");
-    m_mapAnswer.insert(2, "признаков гипертрофии желудочков");
-    m_mapAnswer.insert(3, "блокады ножек пучка Гиса");
+    m_mapAnswer.insert(0, "признаков инфаркта миокарда");
+    m_mapAnswer.insert(1, "признаков гипертрофии желудочков");
+    m_mapAnswer.insert(2, "блокады ножек пучка Гиса");
 }
 
 void level4::createQuestion()

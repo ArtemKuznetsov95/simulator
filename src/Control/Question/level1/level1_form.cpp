@@ -46,9 +46,9 @@ void level1_Form::createPlot()
 void level1_Form::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "в норме");
-    m_mapAnswer.insert(2, "с областями инфаркта миокарда");
-    m_mapAnswer.insert(3, "с гипертрофией желудочков");
+    m_mapAnswer.insert(0, "в норме");
+    m_mapAnswer.insert(1, "с областями инфаркта миокарда");
+    m_mapAnswer.insert(2, "с гипертрофией желудочков");
 }
 
 void level1_Form::createQuestion()

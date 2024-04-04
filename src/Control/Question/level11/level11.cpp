@@ -46,9 +46,9 @@ void level11::createPlot()
 void level11::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "электрокардиограмма");
-    m_mapAnswer.insert(2, "эдектроэнцефалограмма");
-    m_mapAnswer.insert(3, "электромиограмма");
+    m_mapAnswer.insert(0, "электрокардиограмма");
+    m_mapAnswer.insert(1, "эдектроэнцефалограмма");
+    m_mapAnswer.insert(2, "электромиограмма");
 }
 
 void level11::createQuestion()

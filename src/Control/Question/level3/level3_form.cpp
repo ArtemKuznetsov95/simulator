@@ -46,9 +46,9 @@ void level3_Form::createPlot()
 void level3_Form::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "инфаркта миокарда");
-    m_mapAnswer.insert(2, "ишемическая болезнь сердца");
-    m_mapAnswer.insert(3, "гипертрофия левого предсердия");
+    m_mapAnswer.insert(0, "инфаркта миокарда");
+    m_mapAnswer.insert(1, "ишемическая болезнь сердца");
+    m_mapAnswer.insert(2, "гипертрофия левого предсердия");
 }
 
 void level3_Form::createQuestion()

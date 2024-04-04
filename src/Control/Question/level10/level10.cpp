@@ -46,9 +46,9 @@ void level10::createPlot()
 void level10::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "бигемения");
-    m_mapAnswer.insert(2, "одиночная экстраситола");
-    m_mapAnswer.insert(3, "выпадение кардиоцикла");
+    m_mapAnswer.insert(0, "бигемения");
+    m_mapAnswer.insert(1, "одиночная экстраситола");
+    m_mapAnswer.insert(2, "выпадение кардиоцикла");
 }
 
 void level10::createQuestion()

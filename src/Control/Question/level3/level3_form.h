@@ -33,7 +33,7 @@ private:
     Ui::level3_Form *ui;
     QString m_nameQuestin = "Вопрос3";
     QMap<int, QString> m_mapAnswer;
-    int m_result = 2;
+    int m_result = 1;
 
     _data_pqrst_ data_pqrst;
     QVector<_data_pqrst_> v_data_pqrst;

@@ -46,9 +46,9 @@ void level5::createPlot()
 void level5::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "экстрасистолия");
-    m_mapAnswer.insert(2, "фибрилляция желудочков");
-    m_mapAnswer.insert(3, "тахикардия");
+    m_mapAnswer.insert(0, "экстрасистолия");
+    m_mapAnswer.insert(1, "фибрилляция желудочков");
+    m_mapAnswer.insert(2, "тахикардия");
 }
 
 void level5::createQuestion()

@@ -46,9 +46,9 @@ void level9::createPlot()
 void level9::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "бигемения");
-    m_mapAnswer.insert(2, "тригемения");
-    m_mapAnswer.insert(3, "квадригемения");
+    m_mapAnswer.insert(0, "бигемения");
+    m_mapAnswer.insert(1, "тригемения");
+    m_mapAnswer.insert(2, "квадригемения");
 }
 
 void level9::createQuestion()

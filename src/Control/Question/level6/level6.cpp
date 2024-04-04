@@ -46,9 +46,9 @@ void level6::createPlot()
 void level6::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "нормального ритма");
-    m_mapAnswer.insert(2, "тахикардии");
-    m_mapAnswer.insert(3, "брадикардии");
+    m_mapAnswer.insert(0, "нормального ритма");
+    m_mapAnswer.insert(1, "тахикардии");
+    m_mapAnswer.insert(2, "брадикардии");
 }
 
 void level6::createQuestion()

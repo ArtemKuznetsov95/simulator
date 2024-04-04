@@ -46,9 +46,9 @@ void level12::createPlot()
 void level12::createAnswer()
 {
     m_mapAnswer.clear();
-    m_mapAnswer.insert(1, "альфа");
-    m_mapAnswer.insert(2, "дельта");
-    m_mapAnswer.insert(3, "тетта");
+    m_mapAnswer.insert(0, "альфа");
+    m_mapAnswer.insert(1, "дельта");
+    m_mapAnswer.insert(2, "тетта");
 }
 
 void level12::createQuestion()

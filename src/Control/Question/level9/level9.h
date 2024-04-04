@@ -29,7 +29,7 @@ private:
     QCustomPlot* widget_plot;
     QString m_nameQuestin = "Вопрос9";
     QMap<int, QString> m_mapAnswer;
-    int m_result = 1;
+    int m_result = 0;
 
     _data_pqrst_ data_pqrst;
     QVector<_data_pqrst_> v_data_pqrst;
