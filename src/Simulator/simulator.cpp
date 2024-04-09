@@ -101,6 +101,9 @@ Simulator::Simulator(QWidget *parent) :
     ui->m_stackedWidget->addWidget(m_widgetTraining);
     ui->m_stackedWidget->addWidget(m_widgetControl);
 
+    ui->m_listView_diogram->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->m_listView_diogram->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     switchingModesPlayback();
 }
 
@@ -731,7 +734,7 @@ void Simulator::show_DiogramEKG_FORM_Norm()
     data_pqrst.name = "Q зубец";
     data_pqrst.sig = 6;
     data_pqrst.end = 0.3;
-    data_pqrst.amp = -9.43;
+    data_pqrst.amp = -9.44;
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
     data_pqrst.name = "QR интервал";
@@ -742,8 +745,12 @@ void Simulator::show_DiogramEKG_FORM_Norm()
     v_data_pqrst.push_back(data_pqrst);
     data_pqrst.name = "RS интервал";
     data_pqrst.sig = 6;
-    data_pqrst.end = 0.36;
+    data_pqrst.end = 0.36;    
+#ifdef linux
+    data_pqrst.amp = -9.53;
+#else
     data_pqrst.amp = -9.51;
+#endif
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
     data_pqrst.name = "S зубец";
@@ -835,6 +842,7 @@ void Simulator::show_DiogramEMG_Norm_plot()
 #else
         data_pqrst.end = (double)i/250;
         data_pqrst.amp = (double)x/1000;
+        data_pqrst.dur = 0.0001;
 #endif
         v_data_pqrst.push_back(data_pqrst);
     }
@@ -1354,7 +1362,7 @@ void Simulator::show_DiogramEEG_Norm_4()
         data_pqrst.amp = (double)x/10;
 #else
         data_pqrst.end = (double)i/250;
-        data_pqrst.amp = (double)x/1000;
+        data_pqrst.amp = (double)x/100;
 #endif
         v_data_pqrst.push_back(data_pqrst);
     }
