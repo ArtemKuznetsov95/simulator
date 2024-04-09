@@ -747,9 +747,9 @@ void Simulator::show_DiogramEKG_FORM_Norm()
     data_pqrst.sig = 6;
     data_pqrst.end = 0.36;    
 #ifdef linux
-    data_pqrst.amp = -9.53;
-#else
     data_pqrst.amp = -9.51;
+#else
+    data_pqrst.amp = -9.53;
 #endif
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
