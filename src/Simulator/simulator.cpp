@@ -163,6 +163,7 @@ void Simulator::show_DiogramEEG_Norm()
 
 
 void Simulator::openFile() {
+#ifdef linux
     fileName = QFileDialog::getOpenFileName(this, trUtf8("Открыть сигнал..."),
                                             QString(), trUtf8("Сигналы MIT BIH (*.hea);;Все файлы (*)"));
     if (fileName.isEmpty()) return;
@@ -241,6 +242,7 @@ void Simulator::openFile() {
 
     QApplication::restoreOverrideCursor();
     statusBar()->showMessage(trUtf8("Сигнал открыт"), 2000);
+#endif
 }
 
 void Simulator::viewPlay(bool in) {

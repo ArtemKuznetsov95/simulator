@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <Control/Question/QuestionPattern/questionpattern_form.h>
+#include <QMessageBox>
 
 class QuestionPattern_Form;
 

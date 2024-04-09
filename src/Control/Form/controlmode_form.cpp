@@ -115,6 +115,7 @@ void ControlMode_Form::on_m_pushButton_next_clicked()
         ui->m_label_eror->setVisible(true);
         return;
     }
+//    QMessageBox::information(this, "", QString::number(m_countAnswers));
 
     if(m_questionPattern->isWidget()) {
         m_questionPattern->randCurrentWidget();

@@ -29,9 +29,9 @@ MOC_DIR        = obj
 UI_DIR         = ui
 UI_HEADERS_DIR = obj
 RCC_DIR        = obj
-
-LIBS += -lwfdb
-
+linux {
+    LIBS +=  $(SUBLIBS)  -lwfdb
+}
 # Input
 HEADERS += \
     src/Control/Question/level/level.h \
@@ -56,7 +56,8 @@ HEADERS += \
     src/Control/Question/level1/level1_form.h \
     src/Control/Form/controlmode_form.h \
     src/Simulator/simulator.h \
-    src/Utilities/delegate.h
+    src/Utilities/delegate.h \
+
 FORMS += \
     src/Control/Question/QuestionPattern/questionpattern_form.ui \
     src/Control/Question/level1/level1_form.ui \
@@ -92,4 +93,3 @@ SOURCES += \
 
 
 RESOURCES += img/application.qrc
-

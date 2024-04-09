@@ -3,7 +3,8 @@
 
 #include <QtGui>
 #include <QMainWindow>
-#include <wfdb/wfdblib.h>
+#include <Utilities/wfdblib.h>
+#include <Utilities/wfdb.h>
 #include <Control/Form/controlmode_form.h>
 #include <Tratining/Form/tratining_form.h>
 

@@ -98,6 +98,8 @@ void QuestionPattern_Form::randMapAnswer(QMap<int, QString> map)
     auto widget = dynamic_cast<level*>(ui->m_stackedWidget->currentWidget());
     correctAnswer = map[widget->getResult()];
 
+//    QMessageBox::information(this, "", correctAnswer);
+
     connect(ui->m_radioButton_1, &QRadioButton::clicked, [this](){
         auto result = ui->m_radioButton_1->text();
         result.resize(result.size() - 1);
@@ -109,7 +111,7 @@ void QuestionPattern_Form::randMapAnswer(QMap<int, QString> map)
         emit si_checkRadioButton();
     });
     connect(ui->m_radioButton_2, &QRadioButton::clicked, [this](){
-        auto result = ui->m_radioButton_1->text();
+        auto result = ui->m_radioButton_2->text();
         result.resize(result.size() - 1);
         if (result == correctAnswer) {
             m_right = true;
@@ -119,7 +121,7 @@ void QuestionPattern_Form::randMapAnswer(QMap<int, QString> map)
         emit si_checkRadioButton();
     });
     connect(ui->m_radioButton_3, &QRadioButton::clicked, [this](){
-        auto result = ui->m_radioButton_1->text();
+        auto result = ui->m_radioButton_3->text();
         result.resize(result.size() - 1);
         if (result == correctAnswer) {
             m_right = true;
