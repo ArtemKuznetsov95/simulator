@@ -105,6 +105,7 @@ Simulator::Simulator(QWidget *parent) :
     ui->m_listView_diogram->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     switchingModesPlayback();
+    resize(1200, 400);
 }
 
 Simulator::~Simulator()
@@ -814,7 +815,7 @@ void Simulator::show_DiogramEMG_Norm_plot()
     int end = 300;
 
     srand(time(NULL));
-    for(int i = 1; i <= count; ++i) {
+    for(int i = 0; i <= count; i++) {
         if(i % 23 == 0 || i % 22 == 0) {
             start = 400;
             end = 500;
@@ -830,19 +831,19 @@ void Simulator::show_DiogramEMG_Norm_plot()
 
 
         if(i % 2 == 0) {
-            x = 500 + x;
+            x = 0 + x;
 
         } else {
-            x = 500 - x;
+            x = 0 - x;
         }
 
 #ifdef linux
         data_pqrst.end = (double)i/1000;
         data_pqrst.amp = (double)x/100;
 #else
-        data_pqrst.end = (double)i/250;
-        data_pqrst.amp = (double)x/1000;
-        data_pqrst.dur = 0.0001;
+        data_pqrst.end = (double)i/25;
+        data_pqrst.amp = (double)x/100;
+        data_pqrst.dur = 0.001;
 #endif
         v_data_pqrst.push_back(data_pqrst);
     }
