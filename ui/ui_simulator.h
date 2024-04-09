@@ -128,7 +128,7 @@ public:
     {
         if (Simulator->objectName().isEmpty())
             Simulator->setObjectName(QString::fromUtf8("Simulator"));
-        Simulator->resize(1472, 880);
+        Simulator->resize(1472, 1033);
         QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -448,8 +448,9 @@ public:
 
         dsb_end = new QDoubleSpinBox(widget_edit_row);
         dsb_end->setObjectName(QString::fromUtf8("dsb_end"));
+        dsb_end->setDecimals(4);
         dsb_end->setMinimum(0.010000000000000);
-        dsb_end->setSingleStep(0.010000000000000);
+        dsb_end->setSingleStep(0.000100000000000);
         dsb_end->setValue(0.040000000000000);
 
         horizontalLayout_6->addWidget(dsb_end);

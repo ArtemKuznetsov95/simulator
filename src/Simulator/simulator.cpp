@@ -810,17 +810,17 @@ void Simulator::show_DiogramEMG_Norm_plot()
 
     //Количество отрезков
     int count = 500;
-    int start = 10;
-    int end = 30;
+    int start = 100;
+    int end = 300;
 
     srand(time(NULL));
     for(int i = 1; i <= count; ++i) {
         if(i % 23 == 0 || i % 22 == 0) {
-            start = 40;
-            end = 50;
+            start = 400;
+            end = 500;
         } else {
-            start = 10;
-            end = 30;
+            start = 100;
+            end = 300;
         }
 
         double x = rand() % (end - start +1) + start;
@@ -830,15 +830,15 @@ void Simulator::show_DiogramEMG_Norm_plot()
 
 
         if(i % 2 == 0) {
-            x = 50 + x;
+            x = 500 + x;
 
         } else {
-            x = 50 - x;
+            x = 500 - x;
         }
 
 #ifdef linux
         data_pqrst.end = (double)i/1000;
-        data_pqrst.amp = (double)x/10;
+        data_pqrst.amp = (double)x/100;
 #else
         data_pqrst.end = (double)i/250;
         data_pqrst.amp = (double)x/1000;
@@ -849,7 +849,7 @@ void Simulator::show_DiogramEMG_Norm_plot()
 
     bool in = noEdit;
     noEdit = true;
-    ui->dsb_sig_amp->setValue(1);
+//    ui->dsb_sig_amp->setValue(1);
     int k = v_data_pqrst.size();
     ui->tableWidget->setRowCount(k);
 
@@ -1352,10 +1352,10 @@ void Simulator::show_DiogramEEG_Norm_4()
 
 
         if(i % 2 == 0) {
-            x = 15 + x;
+            x = 0 + x;
 
         } else {
-            x = 15 - x;
+            x = 0 - x;
         }
 #ifdef linux
         data_pqrst.end = (double)i/1000;
