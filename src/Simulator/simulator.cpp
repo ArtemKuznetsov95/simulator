@@ -841,7 +841,7 @@ void Simulator::show_DiogramEMG_Norm_plot()
         data_pqrst.end = (double)i/1000;
         data_pqrst.amp = (double)x/100;
 #else
-        data_pqrst.end = (double)i/25;
+        data_pqrst.end = (double)i/250;
         data_pqrst.amp = (double)x/100;
         data_pqrst.dur = 0.001;
 #endif
