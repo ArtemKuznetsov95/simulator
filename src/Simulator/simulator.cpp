@@ -11,16 +11,16 @@ Simulator::Simulator(QWidget *parent) :
 {
     ui->setupUi(this);
 
-#ifdef ANDROID
-    ui->pb_add->setMinimumSize(64,64);
-    ui->pb_add->setMaximumSize(64,64);
+//#ifdef ANDROID
+//    ui->pb_add->setMinimumSize(64,64);
+//    ui->pb_add->setMaximumSize(64,64);
 
-    ui->pb_del->setMinimumSize(64,64);
-    ui->pb_del->setMaximumSize(64,64);
+//    ui->pb_del->setMinimumSize(64,64);
+//    ui->pb_del->setMaximumSize(64,64);
 
-    ui->pb_edit->setMinimumSize(64,64);
-    ui->pb_edit->setMaximumSize(64,64);
-#endif
+//    ui->pb_edit->setMinimumSize(64,64);
+//    ui->pb_edit->setMaximumSize(64,64);
+//#endif
 
     ui->mainToolBar->addAction(ui->action_open);
     ui->mainToolBar->addSeparator();
@@ -595,7 +595,7 @@ void Simulator::startGen(bool in)
         pointsYg = pointsY;
     }
 #ifdef ANDROID
-    if (in) timer->start(100);
+    if (in) timer->start(60);
 #else
     if (in) timer->start(10);
 #endif
@@ -749,7 +749,7 @@ void Simulator::show_DiogramEKG_FORM_Norm()
     data_pqrst.name = "S зубец";
     data_pqrst.sig = 6;
     data_pqrst.end = 0.38;
-    data_pqrst.amp = 78.56;
+    data_pqrst.amp = 78.57;
     data_pqrst.amp_shift = 0;
     v_data_pqrst.push_back(data_pqrst);
     data_pqrst.name = "ST интервал";
@@ -819,7 +819,8 @@ void Simulator::show_DiogramEMG_Norm_plot()
         double x = rand() % (end - start +1) + start;
         data_pqrst.name = QString("Интервал-%1").arg(QString::number(i));
         data_pqrst.sig = 5;
-        data_pqrst.end = (double)i/1000;
+
+
 
         if(i % 2 == 0) {
             x = 50 + x;
@@ -827,7 +828,14 @@ void Simulator::show_DiogramEMG_Norm_plot()
         } else {
             x = 50 - x;
         }
+
+#ifdef linux
+        data_pqrst.end = (double)i/1000;
         data_pqrst.amp = (double)x/10;
+#else
+        data_pqrst.end = (double)i/250;
+        data_pqrst.amp = (double)x/1000;
+#endif
         v_data_pqrst.push_back(data_pqrst);
     }
 
@@ -1333,7 +1341,7 @@ void Simulator::show_DiogramEEG_Norm_4()
         double x = rand() % (end - start +1) + start;
         data_pqrst.name = QString("Интервал-%1").arg(QString::number(i));
         data_pqrst.sig = 5;
-        data_pqrst.end = (double)i/1000;
+
 
         if(i % 2 == 0) {
             x = 15 + x;
@@ -1341,7 +1349,13 @@ void Simulator::show_DiogramEEG_Norm_4()
         } else {
             x = 15 - x;
         }
-        data_pqrst.amp = (double)x/100;
+#ifdef linux
+        data_pqrst.end = (double)i/1000;
+        data_pqrst.amp = (double)x/10;
+#else
+        data_pqrst.end = (double)i/250;
+        data_pqrst.amp = (double)x/1000;
+#endif
         v_data_pqrst.push_back(data_pqrst);
     }
 
