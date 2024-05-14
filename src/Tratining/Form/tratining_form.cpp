@@ -64,10 +64,13 @@ Tratining_Form::Tratining_Form(QWidget *parent) :
             break;
         case ListData::SignalEFS::EEG:
             m_plot->sl_showPlot_DiogramEEG(static_cast<ListData::DiogramEEG>(item->data().toInt()));
-
+            break;
+        case ListData::SignalEFS::TEST:
             break;
         }
     });
+    connect(ui->m_comboBox_noise, SIGNAL(currentIndexChanged(int)), this, SLOT(sl_selectDirection()));
+    this->updateComboBox_noise();
 
     ui->m_pushButton_ekg->click();
 }
@@ -222,6 +225,8 @@ void Tratining_Form::sl_selectDirection()
     case ListData::SignalEFS::EKG:  sl_currentEKG();    break;
     case ListData::SignalEFS::EMG:  sl_currentEMG();    break;
     case ListData::SignalEFS::EEG:  sl_currentEEG();    break;
+    case ListData::SignalEFS::TEST:     break;
+
     }
 
     QModelIndex firstIndex = modelDiogramList->index(0, 0);
@@ -307,4 +312,73 @@ void Tratining_Form::sl_curentDiogramEEG(ListData::Vid vid)
     case ListData::Vid::NORM:       show_DiogramEEG_Norm();        break;
     case ListData::Vid::PATOLOGY:   show_DiogramEEG_Patology();    break;
     }
+}
+
+void Tratining_Form::updateComboBox_noise()
+{
+
+}
+
+void Tratining_Form::show_Noise()
+{
+
+}
+void Tratining_Form::turnOn_noise_type1()
+{
+//    int N = pointsY.size();
+//    double Y;
+//    for (int k = 0; k < N; k++)
+//    {
+//        Y = ui->dsb_sig_amp->value() / 20 * 2 * ((rand()/((double)RAND_MAX)) - 0.5);
+//        pointsY[k] = pointsY.at(k) + Y;
+//    }
+}
+void Tratining_Form::turnOn_noise_type2()
+{
+//    int N = pointsY.size();
+//    double X;
+//    double Y1,Y2;
+//    double delta = 1.5 * M_PI;
+//    for (int k = 0; k < N; k++)
+//    {
+//        X = (double)(k * 0.01 * ui->sliderX->value()) / (N - 1) + 0.01 * ui->sliderX0->value();
+//        Y1 = ui->dsb_sig_amp->value() / 20 * (sin(2 * M_PI * X * 50 + delta) / 2 + 0.5);
+//        Y2 = 0;//ui->dsb_sig_amp->value() / 10 * (sin(M_2PI * X * 60 + delta) / 2 + 0.5);
+//        pointsY[k] = pointsY.at(k) + Y1 + Y2;
+//    }
+}
+void Tratining_Form::turnOn_noise_type3()
+{
+//    int N = pointsY.size();
+//    double X;
+//    double Y;
+//    double delta = 1.5 * M_PI;
+//    double ch = (double)(1 / (0.01 * (ui->sliderX->value()) + ui->sliderX0->value()));
+//    for (int k = 0; k < N; k++)
+//    {
+//        X = (double)(k * 0.01 * ui->sliderX->value()) / (N - 1) + 0.01 * ui->sliderX0->value();
+//        Y = ui->dsb_sig_amp->value() / 10 * (sin(2 * M_PI * X * ch + delta) / 2 + 0.5);
+//        pointsY[k] = pointsY.at(k) + Y;
+//    }
+}
+void Tratining_Form::turnOn_noise_type4()
+{
+    turnOn_noise_type1();
+    turnOn_noise_type2();
+}
+void Tratining_Form::turnOn_noise_type5()
+{
+    turnOn_noise_type1();
+    turnOn_noise_type3();
+}
+void Tratining_Form::turnOn_noise_type6()
+{
+    turnOn_noise_type2();
+    turnOn_noise_type3();
+}
+void Tratining_Form::turnOn_noise_type7()
+{
+    turnOn_noise_type1();
+    turnOn_noise_type2();
+    turnOn_noise_type3();
 }

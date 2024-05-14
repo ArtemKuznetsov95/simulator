@@ -72,6 +72,7 @@ private slots:
     void show_DiogramEMG_Norm();
     void show_DiogramEEG_Norm();
 
+
     void openFile();
     void viewPlay(bool);
     void startGen(bool);
@@ -86,20 +87,29 @@ private slots:
     void add_row();
     void del_row();
     void edit_row();
-    void pqrstPlot();
+
+
+    void pqrstPlot();       // Вычисление координат графика для всех ЭКГ кроме Тестовых сигналов
+    void testSignalPlot();  // Вычисление координат графика только для Тестовых сигналов
+
     void playPlot();
     void plotX(int);
     void plotX0(int);
     void updatePlot();
+
+
     void switchingModesTraining();
     void switchingModesPlayback();
     void switchingModesControl();
+    void on_m_pushButton_test_clicked();
+
     void on_m_pushButton_ecg_clicked();
     void on_m_pushButton_emg_clicked();
     void on_m_pushButton_eeg_clicked();
     void sl_showPlot_DiogramEKG(ListData::DiogramEKG type);
     void sl_showPlot_DiogramEMG(ListData::DiogramEMG type);
     void sl_showPlot_DiogramEEG(ListData::DiogramEEG type);
+    void sl_showPlot_DiogramTest(ListData::Test type);
     void show_DiogramEKG_FORM_Norm();
     void show_DiogramEMG_Norm_plot();
     void show_DiogramEEG_Norm_1();
@@ -107,7 +117,41 @@ private slots:
     void show_DiogramEEG_Norm_3();
     void show_DiogramEEG_Norm_4();
     void show_DiogramEEG_Norm_5();
+
+    void show_DiogramTest_Type1();
+    void show_DiogramTest_Type2();
+    void show_DiogramTest_Type3();
+    void show_DiogramTest_Type4();
+    void show_DiogramTest_Type5();
+
     void setPlayEditor(bool in);
+
+    /// Блок управления редактора Тестовых сигналов
+    void setEditor_TestSignal(bool in); //Функция включает при true редактор на Тестовые сигналы, при false для всех остальных
+    void sl_setData_dsb_sig_amp(double value); //Слот изменения значения поля Амплитуда
+    void sl_setData_dsb_sig_frec(double value); //Слот изменения значения поля Частота
+    void sl_setData_m_doubleSpinBox_count(int value); //Слот изменения значения поля Кол-во повторений
+
+    /// Блок рисования Тестовых сигналов
+    void draw_DiogramTest_Type1();
+    void draw_DiogramTest_Type2();
+    void draw_DiogramTest_Type3();
+    void draw_DiogramTest_Type4();
+    void draw_DiogramTest_Type5();
+
+    void draw_clear();
+
+    void updateComboBox_noise();
+    void show_Noise();
+    void turnOn_noise_type1();
+    void turnOn_noise_type2();
+    void turnOn_noise_type3();
+    void turnOn_noise_type4();
+    void turnOn_noise_type5();
+    void turnOn_noise_type6();
+    void turnOn_noise_type7();
+
+
 };
 
 #endif // SIMULATOR_H

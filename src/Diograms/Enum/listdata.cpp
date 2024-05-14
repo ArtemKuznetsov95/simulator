@@ -5,6 +5,33 @@ ListData::ListData()
 
 }
 
+QMap<ListData::Noise, QString> ListData::getMapNoise()
+{
+    QMap<Noise, QString> map;
+    map.insert(NO_TYPE, "Нет");
+    map.insert(TYPE_1, "Белый шум(БШ)");
+    map.insert(TYPE_2, "Сетевая помеха(СП)");
+    map.insert(TYPE_3, "Дрейф(Д)");
+    map.insert(TYPE_4, "БШ+СП");
+    map.insert(TYPE_5, "БШ+Д");
+    map.insert(TYPE_6, "СП+Д");
+    map.insert(TYPE_7, "БШ+СП+Д");
+
+    return map;
+}
+
+QMap<ListData::Test, QString> ListData::getMapTest()
+{
+    QMap<Test, QString> map;
+    map.insert(TEST_TYPE_1, "Синусоидальный");
+    map.insert(TEST_TYPE_2, "Треугольный");
+    map.insert(TEST_TYPE_3, "Трапецевидный");
+    map.insert(TEST_TYPE_4, "Параболический");
+    map.insert(TEST_TYPE_5, "Импульсный");
+
+    return map;
+}
+
 QMap<ListData::DiogramEKG, QString> ListData::getMapDiogramEKG_BEAT_Norm()
 {
     QMap<DiogramEKG, QString> map;
@@ -67,6 +94,7 @@ QMap<ListData::DiogramEEG, QString> ListData::getMapDiogramEEG_Norm()
     map.insert(EEG_NORM_3, "Тетра-ритм, 4-7 ГЦ");
     map.insert(EEG_NORM_4, "Гамма-ритм, 30-60 ГЦ");
     map.insert(EEG_NORM_5, "Дельта-ритмб 0.5-4 ГЦ");
+    map.insert(EEG_NORM_5, "Здоровый человек");
     return map;
 
 }
@@ -80,6 +108,7 @@ QMap<ListData::DiogramEEG, QString> ListData::getMapDiogramEEG_Patology()
     map.insert(EEG_PATOLOGY4, "Срайки-волна");
     map.insert(EEG_PATOLOGY5, "Множественные спайки-волна");
     map.insert(EEG_PATOLOGY6, "Острая волна-медленная волна");
+    map.insert(EEG_PATOLOGY6, "Малый эпилептический припадок");
     return map;
 }
 

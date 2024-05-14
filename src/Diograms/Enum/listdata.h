@@ -11,7 +11,8 @@ public:
     enum SignalEFS {
         EKG = 1,
         EMG = 2,
-        EEG = 3
+        EEG = 3,
+        TEST = 4
     };
 
     enum DiogramEKG {
@@ -53,7 +54,7 @@ public:
         EEG_PATOLOGY6 = 11
     };
 
-    enum Noide {
+    enum Noise {
         NO_TYPE = 0,
         TYPE_1 = 1,
         TYPE_2 = 2,
@@ -75,7 +76,18 @@ public:
         PATOLOGY = 2
     };
 
+    enum Test {
+        TEST_TYPE_1 = 1,
+        TEST_TYPE_2 = 2,
+        TEST_TYPE_3 = 3,
+        TEST_TYPE_4 = 4,
+        TEST_TYPE_5 = 5
+    };
+
     ListData();
+
+    static QMap<Noise, QString> getMapNoise();
+    static QMap<Test, QString> getMapTest();
 
     static QMap<DiogramEKG, QString> getMapDiogramEKG_BEAT_Norm();
     static QMap<DiogramEKG, QString> getMapDiogramEKG_BEAT_Patology();

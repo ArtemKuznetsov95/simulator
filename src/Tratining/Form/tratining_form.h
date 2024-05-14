@@ -45,11 +45,21 @@ public slots:
     void sl_curentDiogramEMG(ListData::Vid vid);
     void sl_curentDiogramEEG(ListData::Vid vid);
 
+    void updateComboBox_noise();
+    void show_Noise();
+    void turnOn_noise_type1();
+    void turnOn_noise_type2();
+    void turnOn_noise_type3();
+    void turnOn_noise_type4();
+    void turnOn_noise_type5();
+    void turnOn_noise_type6();
+    void turnOn_noise_type7();
+
 private:
     Ui::Tratining_Form *ui;
     Servise_plot* m_plot;
     QStandardItemModel* modelDiogramList;
-    QButtonGroup* gropRadioButtonMode; //Группа кнопок Режима
+    QButtonGroup* gropRadioButtonMode; //!< Группа кнопок Режима
     QButtonGroup* gropRadioButtonVid; //!< Группа кнопок Вида
     ListData::SignalEFS m_currentSignal; //!< Активный сигнал
 

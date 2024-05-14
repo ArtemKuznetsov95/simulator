@@ -49,8 +49,8 @@ void Servise_plot::sl_showPlot_DiogramEKG(ListData::DiogramEKG type)
         show_DiogramEKG_FORM_Patology8();
         break;
     }
-    plot->xAxis->setLabel(trUtf8("t,с"));
-    plot->yAxis->setLabel(trUtf8("U,мВ"));
+    plot->xAxis->setLabel("t,с");
+    plot->yAxis->setLabel("U,мВ");
 }
 
 void Servise_plot::sl_showPlot_DiogramEMG(ListData::DiogramEMG type)
@@ -175,8 +175,8 @@ void Servise_plot::show_DiogramEKG_BEAT_Patology3()
     v_data_pqrst.clear();
     v_data_pqrst = Diograms_Data::getDataECGPathologies7();
     diograms_Fun::fun_control(plot, v_data_pqrst);
-    plot->xAxis->setLabel(trUtf8("t,с"));
-    plot->yAxis->setLabel(trUtf8("U,мВ"));
+    plot->xAxis->setLabel("t,с");
+    plot->yAxis->setLabel("U,мВ");
 
 }
 

@@ -32,16 +32,16 @@ Simulator::Simulator(QWidget *parent) :
     agr->addAction(ui->action_view_gen);
     agr->addAction(ui->action_view_play);
 
-    ui->dsb_sig_amp->setValue(1);
-    ui->dsb_sig_frec->setValue(1);
+//    ui->dsb_sig_amp->setValue(1);
+//    ui->dsb_sig_frec->setValue(1);
 
     ui->tableWidget->setItemDelegateForColumn(1, new NonEditDelegate());
 
     ui->plot->addGraph();
     ui->plot->axisRect()->setupFullAxesBox(true);
     ui->plot->xAxis->setRange(0, 1, Qt::AlignLeft);
-    ui->plot->xAxis->setLabel(trUtf8("t,с"));
-    ui->plot->yAxis->setLabel(trUtf8("U,мВ"));    
+    ui->plot->xAxis->setLabel("t,с");
+    ui->plot->yAxis->setLabel("U,мВ");
 
     noEdit=true;
     viewPlay(false);
@@ -58,6 +58,7 @@ Simulator::Simulator(QWidget *parent) :
     gropButton->addButton(ui->m_pushButton_eeg);
     gropButton->addButton(ui->m_pushButton_ecg);
     gropButton->addButton(ui->m_pushButton_emg);
+    gropButton->addButton(ui->m_pushButton_test);
 
     connect(ui->action_open,SIGNAL(triggered()),this,SLOT(openFile()));
     connect(ui->cbNameSig,SIGNAL(currentIndexChanged(int)),this,SLOT(playPlot()));
@@ -95,8 +96,13 @@ Simulator::Simulator(QWidget *parent) :
         case ListData::SignalEFS::EEG:
             sl_showPlot_DiogramEEG(static_cast<ListData::DiogramEEG>(item->data().toInt()));
             break;
+        case ListData::SignalEFS::TEST:
+            sl_showPlot_DiogramTest(static_cast<ListData::Test>(item->data().toInt()));
+            break;
         }
     });
+
+    connect(ui->m_comboBox_noise, SIGNAL(currentIndexChanged(int)), this, SLOT(changeSig()));
 
     ui->m_stackedWidget->addWidget(m_widgetTraining);
     ui->m_stackedWidget->addWidget(m_widgetControl);
@@ -104,8 +110,18 @@ Simulator::Simulator(QWidget *parent) :
     ui->m_listView_diogram->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->m_listView_diogram->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    ui->plot->graph()->setPen(QPen( Qt::darkBlue, 3 ));
+
     switchingModesPlayback();
-    resize(1200, 400);
+    this->updateComboBox_noise();
+
+
+    ///Блок обработки сигналов полей для Тестовых сигналов
+    connect(ui->dsb_sig_amp,SIGNAL(valueChanged(double)),this,SLOT(sl_setData_dsb_sig_amp(double)));
+    connect(ui->dsb_sig_frec,SIGNAL(valueChanged(double)),this,SLOT(sl_setData_dsb_sig_frec(double)));
+    connect(ui->m_doubleSpinBox_count_2,SIGNAL(valueChanged(int)),this,SLOT(sl_setData_m_doubleSpinBox_count(int)));
+
+//    resize(1200, 400);
 }
 
 Simulator::~Simulator()
@@ -115,6 +131,8 @@ Simulator::~Simulator()
 
 void Simulator::show_DiogramEKG_Norm()
 {
+    setEditor_TestSignal(false);
+
     modelDiogramList->clear();
     auto map = ListData::getMapDiogramEKG_FORM_Norm();
     QMap<ListData::DiogramEKG, QString>::iterator it;
@@ -133,6 +151,8 @@ void Simulator::show_DiogramEKG_Norm()
 
 void Simulator::show_DiogramEMG_Norm()
 {
+    setEditor_TestSignal(false);
+
     modelDiogramList->clear();
     auto map = ListData::getMapDiogramEMG_Norm();
     QMap<ListData::DiogramEMG, QString>::iterator it;
@@ -150,6 +170,8 @@ void Simulator::show_DiogramEMG_Norm()
 
 void Simulator::show_DiogramEEG_Norm()
 {
+    setEditor_TestSignal(false);
+
     modelDiogramList->clear();
     auto map = ListData::getMapDiogramEEG_Norm();
     QMap<ListData::DiogramEEG, QString>::iterator it;
@@ -168,12 +190,12 @@ void Simulator::show_DiogramEEG_Norm()
 
 void Simulator::openFile() {
 #ifdef linux
-    fileName = QFileDialog::getOpenFileName(this, trUtf8("Открыть сигнал..."),
-                                            QString(), trUtf8("Сигналы MIT BIH (*.hea);;Все файлы (*)"));
+    fileName = QFileDialog::getOpenFileName(this, "Открыть сигнал...",
+                                            QString(), "Сигналы MIT BIH (*.hea);;Все файлы (*)");
     if (fileName.isEmpty()) return;
     if (!QFile::exists(fileName)) {
-        QMessageBox::warning(this, trUtf8("Внимание"),
-                             trUtf8("Файл %1 не существует.").arg(fileName),
+        QMessageBox::warning(this, "Внимание",
+                             QString("Файл %1 не существует.").arg(fileName),
                              QMessageBox::Close);
         fileName.clear();
         return;
@@ -225,8 +247,8 @@ void Simulator::openFile() {
                 }
 
             } else {
-                QMessageBox::warning(this, trUtf8("Внимание"),
-                                     trUtf8("Не все сигналы считаны."),
+                QMessageBox::warning(this, "Внимание",
+                                     "Не все сигналы считаны.",
                                      QMessageBox::Close);
                 fileName.clear();
             }
@@ -238,14 +260,14 @@ void Simulator::openFile() {
             fileName.clear();
         }
     } else {
-        QMessageBox::warning(this, trUtf8("Внимание"),
-                             trUtf8("Нет информации о сигнале."),
+        QMessageBox::warning(this, "Внимание",
+                             "Нет информации о сигнале.",
                              QMessageBox::Close);
         fileName.clear();
     }
 
     QApplication::restoreOverrideCursor();
-    statusBar()->showMessage(trUtf8("Сигнал открыт"), 2000);
+    statusBar()->showMessage("Сигнал открыт", 2000);
 #endif
 }
 
@@ -258,11 +280,11 @@ void Simulator::viewPlay(bool in) {
     ui->sliderX0->setValue(0);
 
     if (in) {
-        ui->action_start->setText(trUtf8("Воспроизводить"));
+        ui->action_start->setText("Воспроизводить");
         if (fileName.isEmpty()) openFile();
         else playPlot();
     } else {
-        ui->action_start->setText(trUtf8("Генерировать"));
+        ui->action_start->setText("Генерировать");
         changeSig();
     }
 }
@@ -274,13 +296,17 @@ void Simulator::changeSig() {
     pointsX.clear();
     pointsY.clear();
     double amp_min = 0;
-    double amp_max = 0.1 * ui->dsb_sig_amp->value();
+    double amp_max = 0;
     double x_visible = 5;
 
-    ui->widget_pqrst->setVisible(true);
-    ui->widget_sig->setVisible(false);
+//    ui->widget_pqrst->setVisible(true);
+//    ui->widget_sig->setVisible(false);
 
-    pqrstPlot();
+    if(m_currentSignal == ListData::SignalEFS::TEST) {
+        testSignalPlot();
+    } else {
+        pqrstPlot();
+    }
 
     for (int k = 0; k < pointsY.size(); k++){
         double amp_i = pointsY.at(k);
@@ -301,6 +327,8 @@ void Simulator::changeSig() {
     ui->sliderX0->setMaximum(x_visible * 100 + 0.1 - ui->sliderX->value());
     noEdit = false;
 
+    this->show_Noise();
+
     double amp_dif = amp_max - amp_min;
     amp_min -= 0.1 * amp_dif;
     amp_dif *= 1.2;
@@ -319,8 +347,8 @@ void Simulator::add_row()
 
     ui->tableWidget->insertRow(i);
 
-    ui->tableWidget->setItem(i, 0, new QTableWidgetItem(QString(trUtf8("%1 участок")).arg(i + 1)));
-    ui->tableWidget->setItem(i, 1, new QTableWidgetItem(trUtf8("нет")));
+    ui->tableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1 участок").arg(i + 1)));
+    ui->tableWidget->setItem(i, 1, new QTableWidgetItem("нет"));
     ui->tableWidget->selectRow(i);
     ui->pb_del->setEnabled(true);
 
@@ -415,6 +443,12 @@ void Simulator::changeDataSig(int sig)
     }
 
     case 6: {
+        ui->dsb_amp->setValue(dur);
+        ui->dsb_dur->setValue(dur);
+        ui->dsb_time_shift->setValue(0);
+        break;
+    }
+    case 7: {
         ui->dsb_amp->setValue(dur);
         ui->dsb_dur->setValue(dur);
         ui->dsb_time_shift->setValue(0);
@@ -527,12 +561,49 @@ void Simulator::pqrstPlot()
                 Y = Y1 + BC;
                 break;
             }
+            case 7: {
+                double Y;
+                    double l;
+                    Y = v_data_pqrst[k].amp * 2 * modf(X * ui->dsb_sig_frec->value(),&l);
+                    if (Y > v_data_pqrst[k].amp)
+                        Y = v_data_pqrst[k].amp * 2 - Y;
+                    i++;
+                    break;
+            }
             }//switch
             pointsX.push_back(X);
             pointsY.push_back(Y);
             i++;
         }//while
         begin = v_data_pqrst[k].end;
+    }
+}
+
+void Simulator::testSignalPlot()
+{
+    auto index =  ui->m_listView_diogram->currentIndex();
+    QStandardItemModel* model = static_cast<QStandardItemModel* >(ui->m_listView_diogram->model());
+    QStandardItem* item = model->item(index.row());
+
+    auto type = static_cast<ListData::Test>(item->data().toInt());
+    switch (type) {
+    case ListData::TEST_TYPE_1:
+        draw_DiogramTest_Type1();
+        break;
+    case ListData::TEST_TYPE_2:
+        draw_DiogramTest_Type2();
+        break;
+    case ListData::TEST_TYPE_3:
+        draw_DiogramTest_Type3();
+        break;
+    case ListData::TEST_TYPE_4:
+        draw_DiogramTest_Type4();
+        break;
+    case ListData::TEST_TYPE_5:
+        draw_DiogramTest_Type5();
+        break;
+    default:
+        break;
     }
 }
 
@@ -827,8 +898,6 @@ void Simulator::show_DiogramEMG_Norm_plot()
         double x = rand() % (end - start +1) + start;
         data_pqrst.name = QString("Интервал-%1").arg(QString::number(i));
         data_pqrst.sig = 5;
-
-
 
         if(i % 2 == 0) {
             x = 0 + x;
@@ -1487,6 +1556,124 @@ void Simulator::show_DiogramEEG_Norm_5()
     else changeSig();
 }
 
+void Simulator::show_DiogramTest_Type1()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = QString("Синус");
+    data_pqrst.end = 1;
+    data_pqrst.dur = 1;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 2;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    int x_max = v_data_pqrst.at(0).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    int value = data_pqrst.end / data_pqrst.dur;
+
+    ui->m_doubleSpinBox_count_2->setValue(value);
+
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+}
+
+void Simulator::show_DiogramTest_Type2()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = QString("Треугольник");
+    data_pqrst.end = 1;
+    data_pqrst.dur = 1;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 2;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    int x_max = v_data_pqrst.at(0).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    int value = data_pqrst.end / data_pqrst.dur;
+
+    ui->m_doubleSpinBox_count_2->setValue(value);
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+
+}
+
+void Simulator::show_DiogramTest_Type3()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = QString("Трапеция");
+    data_pqrst.end = 1;
+    data_pqrst.dur = 1;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 2;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    int x_max = v_data_pqrst.at(0).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    int value = data_pqrst.end / data_pqrst.dur;
+
+    ui->m_doubleSpinBox_count_2->setValue(value);
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+}
+
+void Simulator::show_DiogramTest_Type4()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = QString("Парабола");
+    data_pqrst.end = 1;
+    data_pqrst.dur = 1;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 2;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    int x_max = v_data_pqrst.at(0).end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    int value = data_pqrst.end / data_pqrst.dur;
+
+    ui->m_doubleSpinBox_count_2->setValue(value);
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+}
+
+void Simulator::show_DiogramTest_Type5()
+{
+    v_data_pqrst.clear();
+    _data_pqrst data_pqrst;
+
+    data_pqrst.name = QString("Импульс");
+    data_pqrst.end = 1;
+    data_pqrst.dur = 0.2;
+    data_pqrst.time_shift = 0;
+    data_pqrst.amp = 2;
+    data_pqrst.amp_shift = 0;
+    v_data_pqrst.push_back(data_pqrst);
+
+    int x_max = data_pqrst.end * 100 + 0.1;
+    ui->sliderX->setMaximum(x_max);
+    ui->sliderX->setValue(x_max);
+    int value = data_pqrst.end / data_pqrst.dur;
+
+    ui->m_doubleSpinBox_count_2->setValue(value);
+
+    if (ui->action_view_play->isChecked()) playPlot();
+    else changeSig();
+}
+
 void Simulator::setPlayEditor(bool in)
 {
     if(ui->action_start->isChecked())
@@ -1497,6 +1684,222 @@ void Simulator::setPlayEditor(bool in)
     ui->action_view_play->setEnabled(in);
 }
 
+void Simulator::setEditor_TestSignal(bool in)
+{
+    ui->widget_pqrst->setVisible(!in);
+    ui->widget_sig->setVisible(in);
+}
+
+void Simulator::sl_setData_dsb_sig_amp(double value)
+{
+    v_data_pqrst[0].amp = value;
+    changeSig();
+}
+
+void Simulator::sl_setData_dsb_sig_frec(double value)
+{
+    v_data_pqrst[0].dur = 1 / value;
+    v_data_pqrst[0].end = value * ui->m_doubleSpinBox_count_2->value();
+    changeSig();
+}
+
+void Simulator::sl_setData_m_doubleSpinBox_count(int value)
+{
+    v_data_pqrst[0].end = value * v_data_pqrst[0].dur;
+    changeSig();
+}
+
+void Simulator::draw_DiogramTest_Type1()
+{
+#ifdef ANDROID
+    const int N = 250;
+#else
+    const int N = 1000;
+#endif
+    double X;
+    double Y;
+    int i = 0;
+    int begin = 0;
+    int end = 0;
+    for (int k = 0; k < v_data_pqrst.size(); k++)
+    {
+        ui->dsb_sig_amp->setValue(v_data_pqrst[k].amp);
+        ui->dsb_sig_frec->setValue(1 / v_data_pqrst[k].dur);
+        v_data_pqrst[k].end = ui->m_doubleSpinBox_count_2->value() *  v_data_pqrst[k].dur;
+//        ui->m_doubleSpinBox_count_2->setValue(v_data_pqrst[k].end / v_data_pqrst[k].dur);
+
+        end = v_data_pqrst[k].end * N;
+        double shift = v_data_pqrst[k].time_shift + begin;
+        while (i <= end) {
+            X = (double)i / N;
+
+            double w = 2 * M_PI / v_data_pqrst[k].dur;
+            Y = v_data_pqrst[k].amp * sin(w * (X - shift)) + v_data_pqrst[k].amp_shift;
+
+            pointsX.push_back(X);
+            pointsY.push_back(Y);
+            i++;
+        }//while
+        begin = v_data_pqrst[k].end;
+    }
+}
+
+void Simulator::draw_DiogramTest_Type2()
+{
+#ifdef ANDROID
+    const int N = 250;
+#else
+    const int N = 1000;
+#endif
+    double X;
+    double Y;
+    int i = 0;
+    int begin = 0;
+    int end = 0;
+    for (int k = 0; k < v_data_pqrst.size(); k++)
+    {
+        ui->dsb_sig_amp->setValue(v_data_pqrst[k].amp);
+
+        v_data_pqrst[k].end = ui->m_doubleSpinBox_count_2->value() *  v_data_pqrst[k].dur;
+        ui->dsb_sig_frec->setValue(1 / v_data_pqrst[k].dur);
+//        ui->m_doubleSpinBox_count_2->setValue(v_data_pqrst[k].end / v_data_pqrst[k].dur);
+
+        double w = ui->m_doubleSpinBox_count_2->value();
+
+        end = v_data_pqrst[k].end * N;
+        double shift = v_data_pqrst[k].time_shift + begin;
+        while (i <= end) {
+            X = (double)i / N;
+            double l;
+
+            Y = ui->dsb_sig_amp->value() * 2 * modf(X * ui->dsb_sig_frec->value(),&l);
+            if (Y > ui->dsb_sig_amp->value())
+                Y = ui->dsb_sig_amp->value() * 2 - Y;
+
+            pointsX.push_back(X);
+            pointsY.push_back(Y);
+            i++;
+        }//while
+        begin = v_data_pqrst[k].end;
+    }
+}
+
+void Simulator::draw_DiogramTest_Type3()
+{
+#ifdef ANDROID
+    const int N = 250;
+#else
+    const int N = 1000;
+#endif
+    double X;
+    double Y;
+    int begin = 0;
+    int i = 0;
+    int end = 0.01 * (ui->sliderX0->value() + ui->sliderX->value()) * N;
+    for (int k = 0; k < v_data_pqrst.size(); k++)
+    {
+        ui->dsb_sig_amp->setValue(v_data_pqrst[k].amp);
+
+        v_data_pqrst[k].end = ui->m_doubleSpinBox_count_2->value() *  v_data_pqrst[k].dur;
+        ui->dsb_sig_frec->setValue(1 / v_data_pqrst[k].dur);
+//        ui->m_doubleSpinBox_count_2->setValue(v_data_pqrst[k].end / v_data_pqrst[k].dur);
+
+        double w = ui->m_doubleSpinBox_count_2->value();
+
+        end = v_data_pqrst[k].end * N;
+        double shift = v_data_pqrst[k].time_shift + begin;
+        while (i <= end) {
+            X = (double)i / N;
+            double l;
+            Y = ui->dsb_sig_amp->value() * 4 * modf(X * ui->dsb_sig_frec->value(),&l);
+            if (Y > ui->dsb_sig_amp->value() * 2)
+                Y = ui->dsb_sig_amp->value() * 4 - Y;
+            if (Y > ui->dsb_sig_amp->value()) Y = ui->dsb_sig_amp->value();
+
+            pointsX.push_back(X);
+            pointsY.push_back(Y);
+            i++;
+        }//while
+        begin = v_data_pqrst[k].end;
+    }
+}
+
+void Simulator::draw_DiogramTest_Type4()
+{
+#ifdef ANDROID
+    const int N = 250;
+#else
+    const int N = 1000;
+#endif
+    double X;
+    double Y;
+    int begin = 0;
+    int i = 0;
+    int end = 0.01 * (ui->sliderX0->value() + ui->sliderX->value()) * N;
+    for (int k = 0; k < v_data_pqrst.size(); k++)
+    {
+        ui->dsb_sig_amp->setValue(v_data_pqrst[k].amp);
+
+        v_data_pqrst[k].end = ui->m_doubleSpinBox_count_2->value() *  v_data_pqrst[k].dur;
+        ui->dsb_sig_frec->setValue(1 / v_data_pqrst[k].dur);
+//        ui->m_doubleSpinBox_count_2->setValue(v_data_pqrst[k].end / v_data_pqrst[k].dur);
+
+        double w = ui->m_doubleSpinBox_count_2->value();
+
+        end = v_data_pqrst[k].end * N;
+
+        while (i <= end) {
+            X = (double)i / N;
+            Y = ui->dsb_sig_amp->value() * sin(M_PI * X * ui->dsb_sig_frec->value());
+            if (Y < 0) Y *= -1;
+
+            pointsX.push_back(X);
+            pointsY.push_back(Y);
+            i++;
+        }//while
+        begin = v_data_pqrst[k].end;
+    }
+}
+
+void Simulator::draw_DiogramTest_Type5()
+{
+#ifdef ANDROID
+    const int N = 250;
+#else
+    const int N = 1000;
+#endif
+    double X;
+    double Y;
+    int begin = 0;
+    int i = 0;
+    int end = 0;
+    for (int k = 0; k < v_data_pqrst.size(); k++)
+    {
+        ui->dsb_sig_amp->setValue(v_data_pqrst[k].amp);
+
+        ui->dsb_sig_frec->setValue(1 / v_data_pqrst[k].dur);
+
+        v_data_pqrst[k].end = ui->m_doubleSpinBox_count_2->value() *  v_data_pqrst[k].dur;
+
+        end = v_data_pqrst[k].end * N;
+        int t = N / ui->dsb_sig_frec->value();
+        while (i <= end) {
+            X = (double)i / N;
+            if (!(i % t) && (X != 0)) Y = ui->dsb_sig_amp->value();
+            else Y = 0;
+
+            pointsX.push_back(X);
+            pointsY.push_back(Y);
+            i++;
+        }//while
+        begin = v_data_pqrst[k].end;
+    }
+}
+
+void Simulator::draw_clear()
+{
+    ui->plot->graph()->clearData();
+}
 
 void Simulator::sl_showPlot_DiogramEKG(ListData::DiogramEKG type)
 {
@@ -1541,5 +1944,156 @@ void Simulator::sl_showPlot_DiogramEEG(ListData::DiogramEEG type)
     default:
         break;
     }
+}
+
+void Simulator::sl_showPlot_DiogramTest(ListData::Test type)
+{
+    switch (type) {
+    case ListData::TEST_TYPE_1:
+        show_DiogramTest_Type1();
+        break;
+    case ListData::TEST_TYPE_2:
+        show_DiogramTest_Type2();
+        break;
+    case ListData::TEST_TYPE_3:
+        show_DiogramTest_Type3();
+        break;
+    case ListData::TEST_TYPE_4:
+        show_DiogramTest_Type4();
+        break;
+    case ListData::TEST_TYPE_5:
+        show_DiogramTest_Type5();
+        break;
+    default:
+        draw_clear();
+        break;
+    }
+}
+
+void Simulator::updateComboBox_noise()
+{
+    ui->m_comboBox_noise->clear();
+    auto map = ListData::getMapNoise();
+    QMap<ListData::Noise, QString>::iterator it;
+
+    for(it = map.begin(); it != map.end(); it++) {
+        ui->m_comboBox_noise->addItem(it.value(), (int)it.key());
+    }
+}
+
+void Simulator::show_Noise()
+{
+    auto noise = static_cast<ListData::Noise>(ui->m_comboBox_noise->currentData().toInt());
+    switch (noise) {
+    case ListData::Noise::TYPE_1:
+        turnOn_noise_type1();
+        break;
+    case ListData::Noise::TYPE_2:
+        turnOn_noise_type2();
+        break;
+    case ListData::Noise::TYPE_3:
+        turnOn_noise_type3();
+        break;
+    case ListData::Noise::TYPE_4:
+        turnOn_noise_type4();
+        break;
+    case ListData::Noise::TYPE_5:
+        turnOn_noise_type5();
+        break;
+    case ListData::Noise::TYPE_6:
+        turnOn_noise_type6();
+        break;
+    case ListData::Noise::TYPE_7:
+        turnOn_noise_type7();
+        break;
+    default:
+        break;
+    }
+}
+
+void Simulator::turnOn_noise_type1()
+{
+    int N = pointsY.size();
+    double Y;
+    for (int k = 0; k < N; k++)
+    {
+        Y = ui->dsb_sig_amp->value() / 20 * 2 * ((rand()/((double)RAND_MAX)) - 0.5);
+        pointsY[k] = pointsY.at(k) + Y;
+    }
+}
+void Simulator::turnOn_noise_type2()
+{
+    int N = pointsY.size();
+    double X;
+    double Y1,Y2;
+    double delta = 1.5 * M_PI;
+    for (int k = 0; k < N; k++)
+    {
+        X = (double)(k * 0.01 * ui->sliderX->value()) / (N - 1) + 0.01 * ui->sliderX0->value();
+        Y1 = ui->dsb_sig_amp->value() / 20 * (sin(2 * M_PI * X * 50 + delta) / 2 + 0.5);
+        Y2 = 0;//ui->dsb_sig_amp->value() / 10 * (sin(M_2PI * X * 60 + delta) / 2 + 0.5);
+        pointsY[k] = pointsY.at(k) + Y1 + Y2;
+    }
+}
+void Simulator::turnOn_noise_type3()
+{
+    int N = pointsY.size();
+    double X;
+    double Y;
+    double delta = 1.5 * M_PI;
+    double ch = (double)(1 / (0.01 * (ui->sliderX->value()) + ui->sliderX0->value()));
+    for (int k = 0; k < N; k++)
+    {
+        X = (double)(k * 0.01 * ui->sliderX->value()) / (N - 1) + 0.01 * ui->sliderX0->value();
+        Y = ui->dsb_sig_amp->value() / 10 * (sin(2 * M_PI * X * ch + delta) / 2 + 0.5);
+        pointsY[k] = pointsY.at(k) + Y;
+    }
+}
+void Simulator::turnOn_noise_type4()
+{
+    turnOn_noise_type1();
+    turnOn_noise_type2();
+}
+void Simulator::turnOn_noise_type5()
+{
+    turnOn_noise_type1();
+    turnOn_noise_type3();
+}
+void Simulator::turnOn_noise_type6()
+{
+    turnOn_noise_type2();
+    turnOn_noise_type3();
+}
+void Simulator::turnOn_noise_type7()
+{
+    turnOn_noise_type1();
+    turnOn_noise_type2();
+    turnOn_noise_type3();
+}
+
+void Simulator::on_m_pushButton_test_clicked()
+{
+    setEditor_TestSignal(true);
+
+    m_currentSignal = ListData::SignalEFS::TEST;
+
+    modelDiogramList->clear();
+    auto map = ListData::getMapTest();
+    QMap<ListData::Test, QString>::iterator it;
+
+    int i = 1;
+    for(it = map.begin(); it != map.end(); it++) {
+        QStandardItem* item = new QStandardItem();
+        item->setText(QString("%1. ").arg(QString::number(i)) + it.value());
+        item->setData(it.key());
+        modelDiogramList->appendRow(item);
+        ++i;
+    }
+
+    ui->m_listView_diogram->setModel(modelDiogramList);
+
+    QModelIndex firstIndex = modelDiogramList->index(0, 0);
+    ui->m_listView_diogram->setCurrentIndex(firstIndex);
+    ui->m_listView_diogram->clicked(firstIndex);
 }
 
